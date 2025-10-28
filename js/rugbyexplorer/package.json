@@ -1,5 +1,5 @@
 {
-  "name": "fusesport",
+  "name": "rugbyexplorer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@wordpress/scripts": "^30.25.0",
+    "@wordpress/scripts": "^30.26.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"

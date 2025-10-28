@@ -39,7 +39,7 @@ class Settings
     add_action('admin_menu', array($this, 'register_options_page'));
 
     // add_action('update_option_fusesport_options', array($this, 'on_setting_page_update'), 10, 2);
-    add_action('updated_option', array($this, 'on_update_option'), 10, 3);
+    // add_action('updated_option', array($this, 'on_update_option'), 10, 3);
   }
 
   /**
@@ -359,7 +359,8 @@ class Settings
   ?>
     <div class="wrap">
       <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-      <form action="options.php" method="post">
+      <br>
+      <form action="options.php" method="post" style="display:none;">
         <?php
         // output security fields for the registered setting "rugbyexplorer"
         settings_fields('rugbyexplorer');
@@ -370,9 +371,10 @@ class Settings
         submit_button('Save Settings');
         ?>
       </form>
+      <div id="rugbyexplorer"></div>
     </div>
 
-    <div id="rugbyexplorer"></div>
+
 <?php
   }
 

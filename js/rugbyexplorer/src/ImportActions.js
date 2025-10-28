@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Button, Space, Popconfirm, notification } from "antd";
+import { Button, Space, Popconfirm, notification, Card } from "antd";
 
-const App = () => {
+const ImportActions = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -88,30 +88,35 @@ const App = () => {
   };
 
   return (
-    <Space size="large" direction="vertical">
-      {contextHolder}
-      <div>
-        <Button onClick={importData} loading={loading}>
-          Import Data
-        </Button>
-        <p>Import data from FuseSport API to SportsPress</p>
-      </div>
-      <div>
-        <Popconfirm
-          title="Delete all events"
-          description="Are you sure to delete all events?"
-          onConfirm={deleteEvents}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button loading={deleting}>Delete Events</Button>
-        </Popconfirm>
+    <Card size="small" title="Import" style={{ marginBottom: "16px" }}>
+      <Space size="large" direction="vertical">
+        {contextHolder}
+        <div>
+          <Button onClick={importData} loading={loading}>
+            Import Data
+          </Button>
+          <p>
+            Import data from RugbyExplorer API to SportsPress. Import Fixtures
+            and Results.
+          </p>
+        </div>
+        <div>
+          <Popconfirm
+            title="Delete all events"
+            description="Are you sure to delete all events?"
+            onConfirm={deleteEvents}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button loading={deleting}>Delete Events</Button>
+          </Popconfirm>
 
-        <p>
-          Delete all events. Use this if you want to import again all events.
-        </p>
-      </div>
-    </Space>
+          <p>
+            Delete all events. Use this if you want to import again all events.
+          </p>
+        </div>
+      </Space>
+    </Card>
   );
 };
-export default App;
+export default ImportActions;

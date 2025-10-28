@@ -56,23 +56,28 @@ class Scripts
    */
   public function backend_script_loader()
   {
-    $asset_file = REA_JS_ROOT_DIR . 'fusesport/build/index.asset.php';
+    $asset_file = REA_JS_ROOT_DIR . 'rugbyexplorer/build/index.asset.php';
 
-    if (file_exists($asset_file) && isset($_GET['page']) && $_GET['page'] == "fusesport") {
+    if (file_exists($asset_file) && isset($_GET['page']) && $_GET['page'] == "rugbyexplorer") {
       $asset = include $asset_file;
-      $option = get_option('fusesport_options');
-      $fusesport_competition_ids = array_map('trim', explode(",", $option['fusesport_field_competition_ids']));
-      wp_register_script('fusesport-js', REA_JS_ROOT_URL . 'fusesport/build/index.js', $asset['dependencies'], $asset['version'], true);
-      wp_localize_script('fusesport-js', 'fusesport_params', array(
+      wp_register_script('rugbyexplorer-js', REA_JS_ROOT_URL . 'rugbyexplorer/build/index.js', $asset['dependencies'], $asset['version'], true);
+      wp_localize_script('rugbyexplorer-js', 'rugbyexplorer_params', array(
         'rest_url'   => esc_url_raw(get_rest_url()),
         'nonce' => wp_create_nonce('wp_rest'),
         'ajax_url' => admin_url('admin-ajax.php'),
-        'fusesport_competition_ids' => $fusesport_competition_ids
-      ));
-      wp_register_style('fusesport-css', REA_JS_ROOT_URL . 'fusesport/build/style-index.css');
+        'settings' => get_option('rugbyexplorer_options') ?: array()
+        // array(
+        //   'rugbyexplorer_field_api_username' => get_option('rugbyexplorer_field_api_username') ?: "",
+        //   'rugbyexplorer_field_api_password' => get_option('rugbyexplorer_field_api_password') ?: "",
+        //   'rugbyexplorer_field_schedule_update' => get_option('rugbyexplorer_field_schedule_update') ?: "",
+        //   'rugbyexplorer_field_club_teams' => get_option('rugbyexplorer_field_club_teams') ?: array()
+        // )
 
-      wp_enqueue_style('fusesport-css');
-      wp_enqueue_script('fusesport-js');
+      ));
+      wp_register_style('rugbyexplorer-css', REA_JS_ROOT_URL . 'rugbyexplorer/build/style-index.css');
+
+      wp_enqueue_style('rugbyexplorer-css');
+      wp_enqueue_script('rugbyexplorer-js');
     }
   }
 
@@ -84,6 +89,6 @@ class Scripts
    */
   public function frontend_script_loader()
   {
-    wp_register_style('fusesport-api-css', REA_CSS_ROOT_URL . 'style.min.css');
+    wp_register_style('rugbyexplorer-api-css', REA_CSS_ROOT_URL . 'style.min.css');
   }
 }

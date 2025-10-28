@@ -499,6 +499,15 @@ video {
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
+.block {
+  display: block;
+}
+.flex {
+  display: flex;
+}
+.hidden {
+  display: none;
+}
 
 .ant-popover{
   z-index: 99999!important;

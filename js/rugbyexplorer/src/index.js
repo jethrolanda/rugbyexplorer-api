@@ -1,6 +1,6 @@
 import { createRoot } from "@wordpress/element";
 import { ConfigProvider } from "antd";
-import FuseSport from "./FuseSport";
+import RugbyExplorer from "./RugbyExplorer";
 import "./style.css";
 
 const App = () => {
@@ -18,11 +18,11 @@ const App = () => {
         }
       }}
     >
-      <FuseSport />
+      <RugbyExplorer />
     </ConfigProvider>
   );
 };
-createRoot(document.getElementById("fusesport")).render(<App />);
+createRoot(document.getElementById("rugbyexplorer")).render(<App />);
 
 // Find all DOM containers, and render order form into them.
 // document.querySelectorAll(".react-calendar").forEach((domContainer) => {
