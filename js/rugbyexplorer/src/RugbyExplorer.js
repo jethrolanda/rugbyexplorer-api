@@ -115,6 +115,7 @@ const App = () => {
               <Form.Item
                 label="Schedule Update"
                 name="rugbyexplorer_field_schedule_update"
+                tooltip={() => "Update events using WP Cron"}
               >
                 <Select
                   // onChange={handleChange}
@@ -172,7 +173,7 @@ const App = () => {
                       >
                         <Input />
                       </Form.Item>
-                      <Form.Item
+                      {/* <Form.Item
                         label="Entity ID"
                         name={[field.name, "entity_id"]}
                         tooltip={() =>
@@ -183,6 +184,28 @@ const App = () => {
                         ]}
                       >
                         <Input />
+                      </Form.Item> */}
+                      <Form.Item
+                        label="Entity ID"
+                        name={[field.name, "entity_id"]}
+                        tooltip={() =>
+                          "Ex: jruc, jjruc, scm-jnr-rugby-union, etc."
+                        }
+                        rules={[
+                          { required: true, message: "Please input entity ID!" }
+                        ]}
+                      >
+                        <Select
+                          // onChange={handleChange}
+                          options={[
+                            { value: "53371", label: "jruc" },
+                            { value: "53370", label: "jjruc" },
+                            {
+                              value: "100047",
+                              label: "scm-jnr-rugby-union"
+                            }
+                          ]}
+                        />
                       </Form.Item>
                       <Form.Item
                         label="Competition ID"

@@ -18,16 +18,16 @@ const ImportActions = () => {
       try {
         setLoading(true);
 
-        // const promises = fusesport_params?.fusesport_competition_ids.map(
+        // const promises = rugbyexplorer_params?.fusesport_competition_ids.map(
         //   async (id) => {
-        const response = await fetch(fusesport_params.ajax_url, {
+        const response = await fetch(rugbyexplorer_params.ajax_url, {
           method: "POST",
           headers: {
-            "X-WP-Nonce": fusesport_params.nonce,
+            "X-WP-Nonce": rugbyexplorer_params.nonce,
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
           },
           body: new URLSearchParams({
-            action: "fusesport_api"
+            action: "rugbyexplorer_api"
           })
         });
 
@@ -60,10 +60,10 @@ const ImportActions = () => {
       try {
         setDeleting(true);
 
-        const response = await fetch(fusesport_params.ajax_url, {
+        const response = await fetch(rugbyexplorer_params.ajax_url, {
           method: "POST",
           headers: {
-            "X-WP-Nonce": fusesport_params.nonce,
+            "X-WP-Nonce": rugbyexplorer_params.nonce,
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
           },
           body: new URLSearchParams({

@@ -20,10 +20,11 @@ class RugbyExplorer_API
 	public $ajax;
 	public $shortcode;
 	public $rest;
-	public $fusesport;
-	public $settings;
 	public $sportspress;
+	public $settings;
+	public $rugbyexplorer;
 	public $cron;
+	public $api;
 
 	const VERSION = '1.0';
 
@@ -46,10 +47,11 @@ class RugbyExplorer_API
 		$this->ajax = REA\Plugin\Ajax::instance();
 		$this->shortcode = REA\Plugin\Shortcode::instance();
 		$this->rest = REA\Plugin\Rest::instance();
-		$this->fusesport = REA\Plugin\Fusesport::instance();
+		$this->sportspress = REA\Plugin\Sportspress::instance();
 		$this->settings = REA\Plugin\Settings::instance();
-		$this->sportspress = \REA\Plugin\Sportspress::instance();
+		$this->rugbyexplorer = \REA\Plugin\RugbyExplorer::instance();
 		$this->cron = \REA\Plugin\Cron::instance();
+		$this->api = \REA\Plugin\Api::instance();
 
 
 		// Register Activation Hook

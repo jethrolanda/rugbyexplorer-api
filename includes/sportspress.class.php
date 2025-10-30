@@ -40,11 +40,11 @@ class Sportspress
     return self::$_instance;
   }
 
-  public function createEvents($data)
+  public function createEvents($games)
   {
     // @set_time_limit(0);
 
-    $options = get_option('fusesport_options');
+    $options = get_option('rugbyexplorer_options');
 
     // REST API endpoint
     $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/events';
@@ -52,39 +52,37 @@ class Sportspress
     // Replace with your WordPress application credentials
     $username =  $options['sportspress_field_api_username'];
     $app_password = $options['sportspress_field_api_password'];
-    $games = $this->getAllGames($data);
-    $leagueName = $data['name'];
 
-    $sportspressSeasonId = $this->getTermSeasonIdByName('2025');
-    $getLeagueId = $this->getTermLeagueIdByName($leagueName);
+    // $sportspressSeasonId = $this->getTermSeasonIdByName('2025');
+    // $getLeagueId = $this->getTermLeagueIdByName($leagueName);
 
 
     foreach ($games as $key => $game) {
 
       // Skip if already added
-      if ($this->checkIfGameIdAlreadyExist($game['id'])) {
-        continue;
-      }
-      $location = isset($game['location']) && !empty(trim($game['location'])) ? trim($game['location']) : '';
-      $venueTermId = empty($location) ? 0 : $this->createVenue($location);
+      // if ($this->checkIfGameIdAlreadyExist($game['id'])) {
+      //   continue;
+      // }
+      // $location = isset($game['location']) && !empty(trim($game['location'])) ? trim($game['location']) : '';
+      // $venueTermId = empty($location) ? 0 : $this->createVenue($location);
 
-      $team_ids = $this->createTeams(
-        array(
-          $game['hmteam'],
-          $game['awteam']
-        )
-      );
+      // $team_ids = $this->createTeams(
+      //   array(
+      //     $game['hmteam'],
+      //     $game['awteam']
+      //   )
+      // );
       // Prepare event data (example: rugby match)
       $prepared_data = array(
-        'title'        => $game['game_title'][0],
+        'title'        => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
         'status'       => 'publish',
-        'teams'        => $team_ids, // IDs of the teams
-        'date'         => $game['gamedate'],
-        'venue'        => $venueTermId, // venue id
-        'competition'  => $getLeagueId, // competion id or league id??
-        'season'       => $sportspressSeasonId // season id
+        // 'teams'        => $team_ids, // IDs of the teams
+        'date'         => $game['dateTime'],
+        // 'venue'        => $venueTermId, // venue id
+        // 'competition'  => $getLeagueId, // competion id or league id??
+        // 'season'       => $sportspressSeasonId // season id
       );
-      // error_log(print_r($prepared_data, true));
+
       $args = array(
         'headers' => array(
           'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
@@ -97,64 +95,64 @@ class Sportspress
 
       // Send the request
       $response = wp_remote_post($url, $args);
-
+      // error_log(print_r($response, true));
       if (is_wp_error($response)) {
-        // error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
+        error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
       } else {
         $body = json_decode(wp_remote_retrieve_body($response), true);
         // error_log('SportsPress Event Created: ' . print_r($prepared_data['title'], true));
         // Assign venue
-        wp_set_object_terms($body['id'], $venueTermId, 'sp_venue');
+        // wp_set_object_terms($body['id'], $venueTermId, 'sp_venue');
 
         // Assign league
-        wp_set_object_terms($body['id'], $getLeagueId, 'sp_league');
+        // wp_set_object_terms($body['id'], $getLeagueId, 'sp_league');
 
         // Assign season
-        wp_set_object_terms($body['id'], $sportspressSeasonId, 'sp_season');
+        // wp_set_object_terms($body['id'], $sportspressSeasonId, 'sp_season');
 
         // Mode
-        update_post_meta($body['id'], 'sp_format', 'league');
+        // update_post_meta($body['id'], 'sp_format', 'league');
 
         // Format
-        update_post_meta($body['id'], 'sp_mode', 'team');
+        // update_post_meta($body['id'], 'sp_mode', 'team');
 
         // Results
-        if (isset($game['hmscore']) && $game['hmscore'] != null && $game['awscore'] && $game['awscore'] != null) {
-          $result = array();
-          $result[$team_ids[0]] = array(
-            "tries" => 0,
-            "conversions" => 0,
-            "pg" => 0,
-            "dg" => 0,
-            "points" => $game['hmscore'],
-            "outcome" => array(
-              $game['hmscore'] > $game['awscore'] ? "win" : "loss"
-            )
-          );
-          $result[$team_ids[1]] = array(
-            "tries" => 0,
-            "conversions" => 0,
-            "pg" => 0,
-            "dg" => 0,
-            "points" => $game['awscore'],
-            "outcome" => array(
-              $game['awscore'] > $game['hmscore'] ? "win" : "loss"
-            )
-          );
+        // if (isset($game['hmscore']) && $game['hmscore'] != null && $game['awscore'] && $game['awscore'] != null) {
+        //   $result = array();
+        //   $result[$team_ids[0]] = array(
+        //     "tries" => 0,
+        //     "conversions" => 0,
+        //     "pg" => 0,
+        //     "dg" => 0,
+        //     "points" => $game['hmscore'],
+        //     "outcome" => array(
+        //       $game['hmscore'] > $game['awscore'] ? "win" : "loss"
+        //     )
+        //   );
+        //   $result[$team_ids[1]] = array(
+        //     "tries" => 0,
+        //     "conversions" => 0,
+        //     "pg" => 0,
+        //     "dg" => 0,
+        //     "points" => $game['awscore'],
+        //     "outcome" => array(
+        //       $game['awscore'] > $game['hmscore'] ? "win" : "loss"
+        //     )
+        //   );
 
-          update_post_meta(
-            $body['id'],
-            'sp_results',
-            $result
-          );
-        }
+        //   update_post_meta(
+        //     $body['id'],
+        //     'sp_results',
+        //     $result
+        //   );
+        // }
 
         // Add game ID
-        update_post_meta(
-          $body['id'],
-          'game_id',
-          $game['id']
-        );
+        // update_post_meta(
+        //   $body['id'],
+        //   'game_id',
+        //   $game['id']
+        // );
       }
       // if ($key == 1) break;
     }
