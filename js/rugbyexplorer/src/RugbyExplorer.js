@@ -21,6 +21,7 @@ import ImportActions from "./ImportActions";
 const App = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [entityOptions, setEntityOptions] = useState([]);
 
   const [api, contextHolder] = notification.useNotification();
   const openNotificationWithIcon = (type) => {
@@ -50,8 +51,10 @@ const App = () => {
 
     if (status === "success") {
       openNotificationWithIcon("success");
+      setEntityOptions(values.rugbyexplorer_field_entity_options ?? []);
     }
   };
+
   useEffect(() => {
     form.setFieldsValue({
       sportspress_field_api_username:
@@ -66,6 +69,10 @@ const App = () => {
       rugbyexplorer_field_entity_options:
         rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
     });
+
+    setEntityOptions(
+      rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
+    );
   }, []);
 
   return (
@@ -256,10 +263,7 @@ const App = () => {
                           //     label: "scm-jnr-rugby-union"
                           //   }
                           // ]}
-                          options={
-                            rugbyexplorer_params?.settings
-                              ?.rugbyexplorer_field_entity_options ?? []
-                          }
+                          options={entityOptions}
                         />
                       </Form.Item>
                       <Form.Item

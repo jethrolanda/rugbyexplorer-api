@@ -21,8 +21,8 @@ class Shortcode
    */
   public function __construct()
   {
-    add_shortcode('fusesports_fixtures', array($this, 'fusesports_fixtures'));
-    add_shortcode('fusesports_ladders', array($this, 'fusesports_ladders'));
+    add_shortcode('player_lineup', array($this, 'player_lineup'));
+    add_shortcode('team_ladder', array($this, 'team_ladder'));
   }
 
   /**
@@ -38,7 +38,8 @@ class Shortcode
     return self::$_instance;
   }
 
-  function fusesports_fixtures($atts)
+
+  public function player_lineup($atts)
   {
 
     $atts = shortcode_atts(array(
@@ -50,124 +51,371 @@ class Shortcode
 
     ob_start();
 
-    $data = $this->get_fusesport_fixtures($atts['season_id'], $atts['competition_id']);
-    $test = wp_remote_get('https://api.fusesport.com/comps/' . $atts['competition_id'] . '/get/');
-    $body = wp_remote_retrieve_body($test);
-    $fixtures = json_decode($body, true);
-    // error_log(print_r($fixtures, true));
-    require_once(REA_VIEWS_ROOT_DIR . 'fusesports-fixtures.php');
+    $args = array(
+      'fixture_id' => get_post_meta(get_the_ID(), 'fixture_id', true)
+    );
+    $data = $this->getPlayerLineUpData($args);
+
+    if (!empty($data['allMatchStatsSummary'])) {
+      require_once(REA_VIEWS_ROOT_DIR . 'player-lineup-view.php');
+    }
+
 
     // content
     return ob_get_clean();
   }
 
-  function fusesports_ladders($atts)
+  public function getPlayerLineUpData($args = array())
   {
-    $atts = shortcode_atts(array(
-      'season_id' => '',
-      'competition_id' => ''
-    ), $atts, 'fusesports_fixtures');
+    // args example
+    // $args = array(
+    //   'season' => '2025',
+    //   'competition' => 'mLGoqgHnacX2AnmgD',
+    //   'team' => 'DZJhdynaY4wSDBQpQ',
+    //   'entityId' => '53371',
+    //   'type' => 'fixtures' or 'results'
+    // );
+    extract($args);
 
-    wp_enqueue_style('fusesport-api-css');
+    // Rugby Xplorer GraphQL endpoint (update if different)
+    $graphql_url = 'https://rugby-au-cms.graphcdn.app/';
 
-    ob_start();
-
-    $data = $this->get_fusesport_ladders($atts['season_id'], $atts['competition_id']);
-    $test = wp_remote_get('https://api.fusesport.com/comps/' . $atts['competition_id'] . '/ladder/');
-    $body = wp_remote_retrieve_body($test);
-    $ladder_data = json_decode($body, true);
-
-    require_once(REA_VIEWS_ROOT_DIR . 'fusesports-ladders.php');
-
-    // content
-    return ob_get_clean();
-  }
-
-
-  public function get_fusesport_fixtures($season_id, $competition_id)
-  {
-    global $fsa;
-    $requested_token = $fsa->fusesport->request_token();
-    if ($requested_token['status'] === 'success') {
-
-      // You can get scheduling, scores and ladder info from https://rugbyresults.fusesport.com/api/rugby/main_detail/
-      // 1313 is the season_id for the whole 2025 Premiership Rugby season.
-      // It’s recommended to filter the results by adding ?competitionID=1688636 for Chikarovski Cup or ?competitionID=1688637 for Women's Div 2
-
-      $url = 'https://rugbyresults.fusesport.com/api/rugby/main_detail/' . $season_id . '?competitionID=' . $competition_id;
-      $token = $requested_token['token'];
-
-      $response = wp_remote_get($url, array(
-        'headers' => array(
-          'Authorization' => 'Bearer ' . $token,
-          'Accept'        => 'application/json',
-        ),
-      ));
-
-      if (is_wp_error($response)) {
-        echo $response->get_error_message();
-      } else {
-
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        $full_name = $data['rugby-schedule'][0]['competitions'][0]['full_name'];
-        $name = $data['rugby-schedule'][0]['competitions'][0]['name'];
-        $games = $data['rugby-schedule'][0]['competitions'][0]['games'];
-
-        $grouped = [];
-
-        foreach ($games as $game) {
-          $round = $game['round_name']; // key to group by
-          $grouped[$round][] = $game;
-        }
-        return array(
-          'full_name' => $full_name,
-          'name' => $name,
-          'rounds' => $grouped
-        );
+    $body = [
+      "operationName" => "matchdetailsRugbyComAu",
+      "variables" => [
+        "comp" => [
+          "id" => null,
+          "season" => null,
+          "fixture" => $fixture_id,
+          "sourceType" => "2"
+        ]
+      ],
+      "query" => "query matchdetailsRugbyComAu(\$comp: CompInput) {
+      getFixtureItem(comp: \$comp) {
+        ...Fixtures_fixture
+        __typename
       }
+      allMatchCommentary(comp: \$comp) {
+        ...Fixture_MatchCommentary
+        __typename
+      }
+      allMatchStatsSummary(comp: \$comp) {
+        id
+        lineUp {
+          id
+          players {
+            ...MatchLineup_matchplayer
+            __typename
+          }
+          substitutes {
+            ...MatchLineup_matchplayer
+            __typename
+          }
+          coaches {
+            ...MatchLineup_matchplayer
+            __typename
+          }
+          __typename
+        }
+        referees {
+          ...MatchStatsSummary_matchreferee
+          __typename
+        }
+        pointsSummary {
+          id
+          tries {
+            ...PointSummary_matchpoint
+            __typename
+          }
+          conversions {
+            ...PointSummary_matchpoint
+            __typename
+          }
+          penaltyGoals {
+            ...PointSummary_matchpoint
+            __typename
+          }
+          fieldGoals {
+            ...PointSummary_matchpoint
+            __typename
+          }
+          __typename
+        }
+        playSummary {
+          id
+          attack {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          defence {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          kicking {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          breakdown {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          setPlay {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          possession {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          discipline {
+            ...MatchPlaySummary_matchplaystat
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      allSeasonStat(comp: \$comp) {
+        ...MatchPlaySummary_matchplaystat
+        __typename
+      }
+    }
+
+    fragment Fixtures_fixture on FixtureItem {
+      id
+      compId
+      compName
+      dateTime
+      group
+      isLive
+      isBye
+      round
+      roundType
+      roundLabel
+      season
+      status
+      venue
+      sourceType
+      matchLabel
+      homeTeam {
+        ...Fixtures_team
+        __typename
+      }
+      awayTeam {
+        ...Fixtures_team
+        __typename
+      }
+      fixtureMeta {
+        ...Fixtures_meta
+        __typename
+      }
+      __typename
+    }
+
+    fragment Fixtures_team on Team {
+      id
+      name
+      teamId
+      score
+      crest
+      __typename
+    }
+
+    fragment Fixtures_meta on Fixture {
+      id
+      ticketURL
+      ticketsAvailableDate
+      isSoldOut
+      radioURL
+      radioStart
+      radioEnd
+      streamURL
+      streamStart
+      streamEnd
+      broadcastPartners {
+        ...Fixtures_broadcastPartners
+        __typename
+      }
+      __typename
+    }
+
+    fragment Fixtures_broadcastPartners on BroadcastPartner {
+      id
+      name
+      link
+      photoId
+      __typename
+    }
+
+    fragment Fixture_MatchCommentary on MatchCommentary {
+      id
+      minute
+      type
+      comment
+      __typename
+    }
+
+    fragment MatchLineup_matchplayer on MatchPlayer {
+      id
+      name
+      position
+      shirtNumber
+      isHome
+      photo {
+        id
+        url
+        alt
+        __typename
+      }
+      link
+      captainType
+      frontRow
+      __typename
+    }
+
+    fragment PointSummary_matchpoint on MatchPoint {
+      id
+      playerName
+      isHome
+      pointsMinute
+      __typename
+    }
+
+    fragment MatchPlaySummary_matchplaystat on MatchPlayStat {
+      id
+      title
+      homeValue
+      awayValue
+      __typename
+    }
+
+    fragment MatchStatsSummary_matchreferee on MatchReferee {
+      refereeId
+      type
+      refereeName
+      status
+      notified
+      private
+      isActive
+      __typename
+    }"
+    ];
+
+    $response = wp_remote_post($graphql_url, [
+      'headers' => [
+        'Content-Type' => 'application/json',
+      ],
+      'body' => wp_json_encode($body),
+      'method' => 'POST',
+      'timeout' => 30,
+    ]);
+
+    if (is_wp_error($response)) {
+      error_log('GraphQL Request Error: ' . $response->get_error_message());
+    } else {
+      $data = json_decode(wp_remote_retrieve_body($response), true);
+
+      return $data['data'];
+      // echo '<pre>';
+      // print_r($data);
+      // echo '</pre>';
     }
   }
 
-  public function get_fusesport_ladders($season_id, $competition_id)
+
+
+  public function team_ladder($atts)
   {
-    global $fsa;
-    $requested_token = $fsa->fusesport->request_token();
-    if ($requested_token['status'] === 'success') {
+    $atts = shortcode_atts(array(
+      'season_id' => '',
+      'competition_id' => ''
+    ), $atts, 'team_ladder');
 
-      // You can get scheduling, scores and ladder info from https://rugbyresults.fusesport.com/api/rugby/main_detail/
-      // 1313 is the season_id for the whole 2025 Premiership Rugby season.
-      // It’s recommended to filter the results by adding ?competitionID=1688636 for Chikarovski Cup or ?competitionID=1688637 for Women's Div 2
+    extract($atts);
 
-      $url = 'https://rugbyresults.fusesport.com/api/rugby/main_detail/' . $season_id . '?competitionID=' . $competition_id;
-      $token = $requested_token['token'];
+    $terms = get_the_terms(get_the_ID(), 'sp_league');
+    if (!empty($terms)) {
+      $competition_id = get_term_meta($terms[0]->term_id, 'competition_id', true);
+    }
 
-      $response = wp_remote_get($url, array(
-        'headers' => array(
-          'Authorization' => 'Bearer ' . $token,
-          'Accept'        => 'application/json',
-        ),
-      ));
 
-      if (is_wp_error($response)) {
-        echo $response->get_error_message();
-      } else {
+    ob_start();
 
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+    $args = array(
+      'competition_id' => $competition_id
+    );
+    $data = $this->getCompetitionLadderData($args);
 
-        $full_name = $data['rugby-schedule'][0]['competitions'][0]['full_name'];
-        $name = $data['rugby-schedule'][0]['competitions'][0]['name'];
-        $ladder = $data['rugby-schedule'][0]['competitions'][0]['ladder'];
-        $final_placings = isset($data['rugby-schedule'][0]['competitions'][0]['final_placings']) ? $data['rugby-schedule'][0]['competitions'][0]['final_placings'] : array();
-        return array(
-          'full_name' => $full_name,
-          'name' => $name,
-          'ladder' => $ladder,
-          'final_placings' => $final_placings
-        );
+    if (!empty($data['ladderPools'])) {
+      require_once(REA_VIEWS_ROOT_DIR . 'team-ladder-view.php');
+    }
+
+
+    // content
+    return ob_get_clean();
+  }
+
+  public function getCompetitionLadderData($args)
+  {
+    extract($args);
+
+    $graphql_url = 'https://rugby-au-cms.graphcdn.app/';
+
+    $body = [
+      "operationName" => "CompLadderQuery",
+      "variables" => [
+        "comp" => [
+          "id" => $competition_id,
+          "sourceType" => "2"
+        ]
+      ],
+      "query" => 'query CompLadderQuery($comp: CompInput) {
+      compLadder(comp: $comp) {
+        id
+        hasPools
+        ladderPools {
+          id
+          poolName
+          teams {
+            id
+            name
+            position
+            totalMatchPoints
+            matchesPlayed
+            matchesWon
+            matchesLost
+            matchesDrawn
+            pointsFor
+            pointsAgainst
+            pointsDifference
+            crest
+            bonusPoints4T
+          }
+        }
       }
+    }'
+    ];
+
+    $args = [
+      'body' => json_encode($body),
+      'headers' => [
+        'Content-Type' => 'application/json',
+      ],
+      'method' => 'POST',
+      'data_format' => 'body',
+    ];
+
+    $response = wp_remote_post($graphql_url, $args);
+
+    if (is_wp_error($response)) {
+      error_log('GraphQL Request Error: ' . $response->get_error_message());
+    } else {
+      $data = json_decode(wp_remote_retrieve_body($response), true);
+
+      return $data['data']['compLadder'];
+      // echo '<pre>';
+      // print_r($data);
+      // echo '</pre>';
     }
   }
 }

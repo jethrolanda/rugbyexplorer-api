@@ -40,8 +40,20 @@ class Sportspress
     return self::$_instance;
   }
 
-  public function createEvents($games)
+  public function createEvents($games, $args)
   {
+    // args example
+    // $args = array(
+    //   'season' => '2025',
+    //   'competition' => 'mLGoqgHnacX2AnmgD',
+    //   'team' => 'DZJhdynaY4wSDBQpQ',
+    //   'entityId' => '53371',
+    //   'type' => 'fixtures' or 'results'
+    // );
+    extract($args);
+    // error_log(print_r($games, true));
+    // error_log(print_r($args, true));
+    // return;
     // @set_time_limit(0);
 
     $options = get_option('rugbyexplorer_options');
@@ -53,33 +65,39 @@ class Sportspress
     $username =  $options['sportspress_field_api_username'];
     $app_password = $options['sportspress_field_api_password'];
 
-    // $sportspressSeasonId = $this->getTermSeasonIdByName('2025');
-    // $getLeagueId = $this->getTermLeagueIdByName($leagueName);
-
+    $sportspressSeasonId = $this->getTermSeasonIdByName($season);
+    $sportspressLeagueId = $this->getTermLeagueIdByName($competition);
 
     foreach ($games as $key => $game) {
 
       // Skip if already added
-      // if ($this->checkIfGameIdAlreadyExist($game['id'])) {
-      //   continue;
-      // }
-      // $location = isset($game['location']) && !empty(trim($game['location'])) ? trim($game['location']) : '';
-      // $venueTermId = empty($location) ? 0 : $this->createVenue($location);
+      if ($this->checkIfGameIdAlreadyExist($game['id'])) {
+        continue;
+      }
 
-      // $team_ids = $this->createTeams(
-      //   array(
-      //     $game['hmteam'],
-      //     $game['awteam']
-      //   )
-      // );
+      // if no league id found then create one
+      if ($sportspressLeagueId == false) {
+        $sportspressLeagueId = $this->createLeague($game['compName'], $competition);
+      }
+
+      $venue = isset($game['venue']) && !empty(trim($game['venue'])) ? trim($game['venue']) : '';
+
+      $sportsPressVenueId = empty($venue) ? 0 : $this->createVenue($venue);
+
+      $team_ids = $this->createTeams(
+        array(
+          $game['homeTeam'],
+          $game['awayTeam']
+        )
+      );
       // Prepare event data (example: rugby match)
       $prepared_data = array(
         'title'        => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
         'status'       => 'publish',
-        // 'teams'        => $team_ids, // IDs of the teams
+        'teams'        => $team_ids, // IDs of the teams
         'date'         => $game['dateTime'],
-        // 'venue'        => $venueTermId, // venue id
-        // 'competition'  => $getLeagueId, // competion id or league id??
+        // 'venue'        => $sportsPressVenueId, // venue id
+        // 'competition'  => $sportspressLeagueId, // competion id or league id??
         // 'season'       => $sportspressSeasonId // season id
       );
 
@@ -102,68 +120,64 @@ class Sportspress
         $body = json_decode(wp_remote_retrieve_body($response), true);
         // error_log('SportsPress Event Created: ' . print_r($prepared_data['title'], true));
         // Assign venue
-        // wp_set_object_terms($body['id'], $venueTermId, 'sp_venue');
+        wp_set_object_terms($body['id'], $sportsPressVenueId, 'sp_venue');
 
         // Assign league
-        // wp_set_object_terms($body['id'], $getLeagueId, 'sp_league');
+        wp_set_object_terms($body['id'], $sportspressLeagueId, 'sp_league');
 
         // Assign season
-        // wp_set_object_terms($body['id'], $sportspressSeasonId, 'sp_season');
+        wp_set_object_terms($body['id'], $sportspressSeasonId, 'sp_season');
 
         // Mode
-        // update_post_meta($body['id'], 'sp_format', 'league');
+        update_post_meta($body['id'], 'sp_format', 'league');
 
         // Format
-        // update_post_meta($body['id'], 'sp_mode', 'team');
+        update_post_meta($body['id'], 'sp_mode', 'team');
 
-        // Results
-        // if (isset($game['hmscore']) && $game['hmscore'] != null && $game['awscore'] && $game['awscore'] != null) {
-        //   $result = array();
-        //   $result[$team_ids[0]] = array(
-        //     "tries" => 0,
-        //     "conversions" => 0,
-        //     "pg" => 0,
-        //     "dg" => 0,
-        //     "points" => $game['hmscore'],
-        //     "outcome" => array(
-        //       $game['hmscore'] > $game['awscore'] ? "win" : "loss"
-        //     )
-        //   );
-        //   $result[$team_ids[1]] = array(
-        //     "tries" => 0,
-        //     "conversions" => 0,
-        //     "pg" => 0,
-        //     "dg" => 0,
-        //     "points" => $game['awscore'],
-        //     "outcome" => array(
-        //       $game['awscore'] > $game['hmscore'] ? "win" : "loss"
-        //     )
-        //   );
+        // Results 
+        if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
+          $result = array();
+          $result[$team_ids[0]] = array(
+            "tries" => '',
+            "conversions" => '',
+            "bp" => '',
+            "points" => $game['homeTeam']['score'],
+            "outcome" => array(
+              $game['homeTeam']['score'] > $game['awayTeam']['score'] ? "win" : "loss"
+            )
+          );
+          $result[$team_ids[1]] = array(
+            "tries" => '',
+            "conversions" => '',
+            "bp" => '',
+            "points" => $game['awayTeam']['score'],
+            "outcome" => array(
+              $game['awayTeam']['score'] > $game['homeTeam']['score'] ? "win" : "loss"
+            )
+          );
 
-        //   update_post_meta(
-        //     $body['id'],
-        //     'sp_results',
-        //     $result
-        //   );
-        // }
+          update_post_meta(
+            $body['id'],
+            'sp_results',
+            $result
+          );
+        }
 
-        // Add game ID
-        // update_post_meta(
-        //   $body['id'],
-        //   'game_id',
-        //   $game['id']
-        // );
+        // Add game ID / Match ID
+        update_post_meta(
+          $body['id'],
+          'fixture_id',
+          $game['id']
+        );
       }
-      // if ($key == 1) break;
     }
-    // error_log(print_r($games, true));
   }
 
   public function createTeams($teams)
   {
     // error_log(print_r($teams, true));
 
-    $options = get_option('fusesport_options');
+    $options = get_option('rugbyexplorer_options');
     $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/teams';
     $username =  $options['sportspress_field_api_username'];
     $app_password = $options['sportspress_field_api_password'];
@@ -171,8 +185,8 @@ class Sportspress
 
     foreach ($teams as $team) {
 
-      $team_name = isset($team['team_name']) ? trim($team['team_name']) : "";
-      $team_id_api = isset($team['id']) ? $team['id'] : "";
+      $team_name = isset($team['name']) ? trim($team['name']) : "";
+      $team_id_api = isset($team['teamId']) ? $team['teamId'] : "";
 
       // Skip creating team
       if ($team_id_api == 0 || empty($team_name)) {
@@ -181,7 +195,7 @@ class Sportspress
       }
 
       // Check if team exist
-      $team_id = $this->checkIfTeamIdAlreadyExist($team_name);
+      $team_id = $this->checkIfTeamIdAlreadyExist($team_id_api);
       if ($team_id > 0) {
         $team_ids[] = $team_id;
         continue;
@@ -212,31 +226,26 @@ class Sportspress
         $body = json_decode(wp_remote_retrieve_body($response), true);
         // error_log('SportsPress Team Created: ' . $team_name);
         $team_ids[] = $body['id'];
-
-        // error_log('createTeams post id: ' . print_r($body['id'], true));
-        // error_log('createTeams team id: ' . print_r($team_id_api, true));
         update_post_meta($body['id'], 'team_id', $team_id_api);
 
-        $image_url = $team['logo_url'];
+        $image_url = $team['crest'];
 
         $post_id   = $body['id']; // Optional – ID of post to attach to
         $attachment_id = $this->createAttachmentFromUrl($image_url, $post_id);
-        error_log('Team Logo ID: ' . print_r($attachment_id, true));
-        // if ($attachment_id) {
-        //   echo 'Created attachment ID: ' . $attachment_id;
-        // }
       }
     }
 
     return $team_ids;
   }
 
+  // If venue not exist then create new
+  // If venue exist then return id
   public function createVenue($venue)
   {
 
     if (empty(trim($venue))) return 0;
 
-    $options = get_option('fusesport_options');
+    $options = get_option('rugbyexplorer_options');
     $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/venues';
     $username =  $options['sportspress_field_api_username'];
     $app_password = $options['sportspress_field_api_password'];
@@ -296,83 +305,96 @@ class Sportspress
       return $term_id;
     }
 
-    return false;
+    $new_term = wp_insert_term(
+      $name,   // Term name
+      'sp_season'              // Your custom taxonomy
+    );
+
+    return $new_term['term_id'];
   }
 
-  public function getTermLeagueIdByName($name)
+  public function getTermLeagueIdByName($competition)
   {
-    $term = get_term_by('name', $name, 'sp_league');
+    $terms = get_terms([
+      'taxonomy'   => 'sp_league', // your taxonomy slug
+      'hide_empty' => false,
+      'fields'     => 'ids',   // ✅ only return term IDs
+      'meta_query' => [
+        [
+          'key'     => 'competition_id', // your term meta key
+          'value'   => $competition,       // the meta value to match
+          'compare' => '='
+        ]
+      ]
+    ]);
 
-    if ($term) {
-      $term_id = $term->term_id;
+    if (!empty($terms) && !is_wp_error($terms)) {
+      $term_id = $terms[0]; // first match
       return $term_id;
-    }
-
-    return false;
-  }
-
-
-  public function checkIfTeamIdAlreadyExist($team_name)
-  {
-    global $wpdb;
-
-    $post_type = 'sp_team';
-
-    // Try to find the post by title (exact match)
-    $post_id = $wpdb->get_var($wpdb->prepare(
-      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s AND post_status != 'trash' LIMIT 1",
-      $team_name,
-      $post_type
-    ));
-
-    // check by the api team id
-    // issue: there are 2 different id for the same team
-
-    // $post_id = $wpdb->get_var($wpdb->prepare(
-    //   "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %s LIMIT 1",
-    //   $meta_key,
-    //   $team_id_api
-    // ));
-
-    // error_log('checkIfTeamIdAlreadyExist: ' . print_r($post_id, true));
-    if ($post_id) {
-      return (int) $post_id;
-    }
-    return false;
-  }
-
-  public function checkIfGameIdAlreadyExist($game_id)
-  {
-    global $wpdb;
-
-    $meta_key = 'game_id';
-
-    $post_id = $wpdb->get_var($wpdb->prepare(
-      "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %s LIMIT 1",
-      $meta_key,
-      $game_id
-    ));
-
-    // error_log('checkIfGameIdAlreadyExist: ' . print_r($post_id, true));
-    if ($post_id) {
-      // echo "✅ Found in post ID: $result";
-      return $post_id;
     } else {
-      // echo "❌ Not found";
       return false;
     }
   }
 
-  public function getAllGames($data)
+  public function createLeague($name, $competition)
   {
-    $games = array();
-    foreach ($data['round_objects'] as $round) {
-      foreach ($round['games'] as $game) {
-        $games[] = $game;
-      }
+    $new_term = wp_insert_term(
+      $name,
+      'sp_league',
+      array(
+        'description' => 'Competition ID: ' . $competition,
+      )
+    );
+
+    if (is_wp_error($new_term)) {
+      error_log('Error: ' . $new_term->get_error_message());
+    } else {
+      $term_id = $new_term['term_id'];
+      update_term_meta($term_id, 'competition_id', sanitize_text_field($competition));
+
+      return $term_id;
     }
-    return $games;
   }
+
+
+  public function checkIfTeamIdAlreadyExist($team_id)
+  {
+
+    $posts = get_posts([
+      'post_type'      => 'sp_team',
+      'posts_per_page' => 1,
+      'fields'         => 'ids',
+      'meta_query'     => [
+        [
+          'key'     => 'team_id',
+          'value'   => $team_id,
+          'compare' => '='
+        ]
+      ]
+    ]);
+
+    return !empty($posts) ? $posts[0] : false;
+  }
+
+  public function checkIfGameIdAlreadyExist($game_id)
+  {
+
+    $sp_event_ids = get_posts(array(
+      'post_type'      => 'sp_event',
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => 'game_id',
+          'compare' => '=',
+          'value' => $game_id
+        )
+      ),
+    ));
+
+    return !empty($sp_event_ids) ? $sp_event_ids[0] : false;
+  }
+
 
   public function createAttachmentFromUrl($image_url, $post_id = 0)
   {

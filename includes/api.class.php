@@ -17,7 +17,7 @@ class Api
    */
   protected static $_instance = null;
 
-  protected static $api_url = 'https://rugby-au-cms.graphcdn.app/';
+  public $api_url = 'https://rugby-au-cms.graphcdn.app/';
 
   /**
    * Class constructor.
@@ -167,7 +167,7 @@ class Api
       $results = $data['data']['getEntityFixturesAndResults'];
       // error_log(print_r(count($results), true));
       global $rea;
-      $rea->sportspress->createEvents($results);
+      $rea->sportspress->createEvents($results, $args);
     }
   }
 

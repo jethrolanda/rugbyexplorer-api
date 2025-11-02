@@ -6,10 +6,10 @@ const ImportActions = () => {
   const [deleting, setDeleting] = useState(false);
 
   const [api, contextHolder] = notification.useNotification();
-  const openNotificationWithIcon = (type) => {
+  const openNotificationWithIcon = (type, msg, desc) => {
     api[type]({
-      message: "Import Successful!",
-      description: `Competitions imported successfully!`
+      message: msg,
+      description: desc
     });
   };
 
@@ -37,7 +37,9 @@ const ImportActions = () => {
         console.log(data);
         if (status === "success") {
           openNotificationWithIcon(
-            "success"
+            "success",
+            "Import Successful!",
+            "Competitions imported successfully!"
             // data?.["rugby-schedule"]?.[0]?.["competitions"]?.[0]?.["full_name"]
           );
         }
@@ -76,6 +78,12 @@ const ImportActions = () => {
 
         console.log(data);
         if (status === "success") {
+          openNotificationWithIcon(
+            "success",
+            "Deletion Successful!",
+            "Events, teams, seasons, leagues and venues have been successfully!"
+            // data?.["rugby-schedule"]?.[0]?.["competitions"]?.[0]?.["full_name"]
+          );
         }
       } catch (error) {
         console.error("Error fetching orders:", error);
