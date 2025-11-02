@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { CloseOutlined } from "@ant-design/icons";
+import {
+  CloseOutlined,
+  MinusCircleOutlined,
+  PlusOutlined
+} from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -58,7 +62,9 @@ const App = () => {
         rugbyexplorer_params?.settings?.rugbyexplorer_field_schedule_update ??
         "daily",
       rugbyexplorer_field_club_teams:
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? []
+        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? [],
+      rugbyexplorer_field_entity_options:
+        rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
     });
   }, []);
 
@@ -125,6 +131,51 @@ const App = () => {
                     { value: "every_fifteen_minutes", label: "Every 15 Mins" }
                   ]}
                 />
+              </Form.Item>
+              <Form.Item label="Entity Options">
+                <Form.List name="rugbyexplorer_field_entity_options">
+                  {(fields, { add, remove }) => (
+                    <>
+                      {fields.map(({ key, name, ...restField }) => (
+                        <Space
+                          key={key}
+                          style={{ display: "flex", marginBottom: 8 }}
+                          align="baseline"
+                        >
+                          <Form.Item
+                            {...restField}
+                            name={[name, "value"]}
+                            rules={[
+                              { required: true, message: "Missing Entity ID" }
+                            ]}
+                          >
+                            <Input placeholder="Entity ID" />
+                          </Form.Item>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "label"]}
+                            rules={[
+                              { required: true, message: "Missing Entity Name" }
+                            ]}
+                          >
+                            <Input placeholder="Entity Name" />
+                          </Form.Item>
+                          <MinusCircleOutlined onClick={() => remove(name)} />
+                        </Space>
+                      ))}
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          block
+                          icon={<PlusOutlined />}
+                        >
+                          Add Option
+                        </Button>
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
               </Form.Item>
             </Card>
 
@@ -197,14 +248,18 @@ const App = () => {
                       >
                         <Select
                           // onChange={handleChange}
-                          options={[
-                            { value: "53371", label: "jruc" },
-                            { value: "53370", label: "jjruc" },
-                            {
-                              value: "100047",
-                              label: "scm-jnr-rugby-union"
-                            }
-                          ]}
+                          // options={[
+                          //   { value: "53371", label: "jruc" },
+                          //   { value: "53370", label: "jjruc" },
+                          //   {
+                          //     value: "100047",
+                          //     label: "scm-jnr-rugby-union"
+                          //   }
+                          // ]}
+                          options={
+                            rugbyexplorer_params?.settings
+                              ?.rugbyexplorer_field_entity_options ?? []
+                          }
                         />
                       </Form.Item>
                       <Form.Item
