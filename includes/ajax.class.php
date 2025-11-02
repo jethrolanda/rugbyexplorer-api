@@ -107,7 +107,7 @@ class Ajax
 
     try {
 
-      $post_type = 'sp_event';
+      $post_type = array('sp_event', 'sp_team');
       $batch_size = 100;
 
       while (true) {
@@ -126,6 +126,21 @@ class Ajax
 
         // optional: short sleep to prevent timeout
         // sleep(1);
+      }
+
+      $taxonomies = array('sp_season', 'sp_league', 'sp_venue'); // your custom taxonomy name 
+
+      foreach ($taxonomies as $taxonomy) {
+        $terms = get_terms([
+          'taxonomy'   => $taxonomy,
+          'hide_empty' => false,
+        ]);
+
+        if (!empty($terms) && !is_wp_error($terms)) {
+          foreach ($terms as $term) {
+            wp_delete_term($term->term_id, $taxonomy);
+          }
+        }
       }
 
       wp_send_json(array(

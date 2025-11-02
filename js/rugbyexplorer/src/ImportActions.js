@@ -103,7 +103,7 @@ const ImportActions = () => {
         <div>
           <Popconfirm
             title="Delete all events"
-            description="Are you sure to delete all events?"
+            description="Are you sure to delete all events, teams, seasons, leagues and venues?"
             onConfirm={deleteEvents}
             okText="Yes"
             cancelText="No"
@@ -112,7 +112,8 @@ const ImportActions = () => {
           </Popconfirm>
 
           <p>
-            Delete all events. Use this if you want to import again all events.
+            Delete all events, teams, seasons, leagues and venues. Use this if
+            you want to import again.
           </p>
         </div>
       </Space>

@@ -17,6 +17,8 @@ class Api
    */
   protected static $_instance = null;
 
+  protected static $api_url = 'https://rugby-au-cms.graphcdn.app/';
+
   /**
    * Class constructor.
    *
@@ -149,7 +151,7 @@ class Api
     }"
     ];
 
-    $response = wp_remote_post('https://rugby-au-cms.graphcdn.app/', [
+    $response = wp_remote_post($this->api_url, [
       'headers' => [
         'Content-Type' => 'application/json',
       ],
@@ -237,7 +239,7 @@ class Api
     }"
     ];
 
-    $response = wp_remote_post('https://rugby-au-cms.graphcdn.app/', [
+    $response = wp_remote_post($this->api_url, [
       'headers' => [
         'Content-Type' => 'application/json',
         // If the API requires authentication, uncomment below:
