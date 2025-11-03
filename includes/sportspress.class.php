@@ -68,7 +68,7 @@ class Sportspress
     $sportspressSeasonId = $this->getTermSeasonIdByName($season);
     $sportspressLeagueId = $this->getTermLeagueIdByName($competition);
 
-    foreach ($games as $key => $game) {
+    foreach ($games as $game) {
 
       // Skip if already added
       if ($this->checkIfGameIdAlreadyExist($game['id'])) {
@@ -80,16 +80,21 @@ class Sportspress
         $sportspressLeagueId = $this->createLeague($game['compName'], $competition);
       }
 
+      // Create venue
       $venue = isset($game['venue']) && !empty(trim($game['venue'])) ? trim($game['venue']) : '';
-
       $sportsPressVenueId = empty($venue) ? 0 : $this->createVenue($venue);
 
+      // Create teams
       $team_ids = $this->createTeams(
         array(
           $game['homeTeam'],
           $game['awayTeam']
         )
       );
+
+      // Players and scores
+      $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+
       // Prepare event data (example: rugby match)
       $prepared_data = array(
         'title'        => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
@@ -108,7 +113,7 @@ class Sportspress
         ),
         'body'    => wp_json_encode($prepared_data),
         'method'  => 'POST',
-        'timeout' => 300,
+        'timeout' => 600,
       );
 
       // Send the request
@@ -118,7 +123,10 @@ class Sportspress
         error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
       } else {
         $body = json_decode(wp_remote_retrieve_body($response), true);
-        // error_log('SportsPress Event Created: ' . print_r($prepared_data['title'], true));
+
+        // Save rugby explorer match data to postmeta
+        update_post_meta($body['id'], 'rugby_explorer_game_data', $game);
+
         // Assign venue
         wp_set_object_terms($body['id'], $sportsPressVenueId, 'sp_venue');
 
@@ -162,9 +170,6 @@ class Sportspress
             $result
           );
         }
-
-        // Players and scores
-        // $this->createPlayers($game['id'], $team_ids);
 
         // Add game ID / Match ID
         update_post_meta(
@@ -234,7 +239,7 @@ class Sportspress
         $image_url = $team['crest'];
 
         $post_id   = $body['id']; // Optional – ID of post to attach to
-        $attachment_id = $this->createAttachmentFromUrl($image_url, $post_id);
+        // $attachment_id = $this->createAttachmentFromUrl($image_url, $post_id);
       }
     }
 
@@ -282,50 +287,75 @@ class Sportspress
     }
   }
 
-  public function createPlayers($matchId, $team_ids)
+  public function createPlayers($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
   {
     global $rea;
 
     $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
+    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
     $players = $data['allMatchStatsSummary']['lineUp']['players'];
-    // error_log(print_r($players, true));
+    $players = array_merge($substitutes, $players);
+
     if (!empty($players)) {
       foreach ($players as $player) {
-        $options = get_option('rugbyexplorer_options');
-        $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/venues';
-        $username =  $options['sportspress_field_api_username'];
-        $app_password = $options['sportspress_field_api_password'];
 
-        $args = array(
-          'headers' => array(
-            'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
-            'Content-Type'  => 'application/json'
-          ),
-          'body'    => wp_json_encode(array(
-            'title'       => $player['name'],
-            'status'      => 'publish',
-            "meta" => array(
-              "sp_number" => $player['shirtNumber'],
-              "sp_team" => $player['isHome'] ? $team_ids[0] : $team_ids[1],
-              "sp_position" => "Forward"
-            )
-          )),
-          'method'  => 'POST',
-          'timeout' => 60
-        );
+        // Skip adding if player already exist
+        if ($this->checkIfPlayerIdAlreadyExist($player['id'])) continue;
 
-        $response = wp_remote_post($url, $args);
+        $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
 
-        if (is_wp_error($response)) {
-          // error_log('SportsPress Player Creation Failed: ' . $response->get_error_message());
-          return 0;
+        $post_data = [
+          'post_title'   => $player['name'],
+          'post_status'  => 'publish',
+          'post_author'  => get_current_user_id(),
+          'post_type'    => 'sp_player'
+        ];
+
+        $post_id = wp_insert_post($post_data);
+
+        if (is_wp_error($post_id)) {
+          echo 'Error creating post: ' . $post_id->get_error_message();
+          error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
         } else {
-          $data = json_decode(wp_remote_retrieve_body($response));
-          error_log('SportsPress Player Created: ' . print_r($data, true));
-          // if (isset($data->code) && $data->code == 'term_exists')
-          //   return $data->data->term_id;
 
-          // return $data->id;
+          // Save rugby explorer data to postmeta
+          update_post_meta($post_id, 'rugby_explorer_player_data', $player);
+
+          // Player ID
+          update_post_meta($post_id, 'player_id', $player['id']);
+
+          // Squad Number / shirtNumber
+          update_post_meta($post_id, 'sp_number', $player['shirtNumber']); //shirtNumber
+
+          // Team
+          update_post_meta($post_id, 'sp_current_team', $team_id);
+          update_post_meta($post_id, 'sp_team', $team_id);
+
+          // League
+          wp_set_object_terms($post_id, $sportspressLeagueId, 'sp_league');
+
+          // Season
+          wp_set_object_terms($post_id, $sportspressSeasonId, 'sp_season');
+
+          // Position
+          $terms = get_terms([
+            'taxonomy'   => 'sp_position',
+            'hide_empty' => false,
+            'meta_query' => [
+              [
+                'key'     => 'sp_order',
+                'value'   => $player['position'],
+                'compare' => '='
+              ]
+            ]
+          ]);
+
+          if (! empty($terms) && ! is_wp_error($terms)) {
+            $term_id = $terms[0]->term_id;
+            wp_set_object_terms($post_id, $term_id, 'sp_position');
+          } else {
+            update_post_meta($post_id, 'sp_position', $player['position']);
+          }
         }
       }
     }
@@ -444,7 +474,26 @@ class Sportspress
       ),
     ));
 
-    return !empty($sp_event_ids) ? $sp_event_ids[0] : false;
+    return !empty($sp_event_ids) ? true : false;
+  }
+
+  public function checkIfPlayerIdAlreadyExist($player_id)
+  {
+
+    $sp_player_ids = get_posts(array(
+      'post_type'      => 'sp_player',
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => 'player_id',
+          'compare' => '=',
+          'value' => $player_id
+        )
+      ),
+    ));
+
+    return !empty($sp_player_ids) ? true : false;
   }
 
 

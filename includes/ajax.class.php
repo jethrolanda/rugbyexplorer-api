@@ -107,7 +107,7 @@ class Ajax
 
     try {
 
-      $post_type = array('sp_event', 'sp_team');
+      $post_type = array('sp_event', 'sp_team', 'sp_player');
       $batch_size = 100;
 
       while (true) {
