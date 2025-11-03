@@ -92,9 +92,6 @@ class Sportspress
         )
       );
 
-      // Players and scores
-      $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
-
       // Prepare event data (example: rugby match)
       $prepared_data = array(
         'title'        => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
@@ -124,6 +121,9 @@ class Sportspress
       } else {
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
+        // Add game ID / Match ID
+        update_post_meta($body['id'], 'fixture_id', $game['id']);
+
         // Save rugby explorer match data to postmeta
         update_post_meta($body['id'], 'rugby_explorer_game_data', $game);
 
@@ -141,6 +141,15 @@ class Sportspress
 
         // Format
         update_post_meta($body['id'], 'sp_mode', 'team');
+
+        // Create Players
+        $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+
+        // Create staff
+        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+
+        // Create staff
+        $this->createOfficial($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
 
         // Results 
         if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
@@ -170,13 +179,6 @@ class Sportspress
             $result
           );
         }
-
-        // Add game ID / Match ID
-        update_post_meta(
-          $body['id'],
-          'fixture_id',
-          $game['id']
-        );
       }
     }
   }
@@ -361,6 +363,98 @@ class Sportspress
     }
   }
 
+
+  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
+  {
+
+    global $rea;
+
+    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
+    $coaches = $data['allMatchStatsSummary']['lineUp']['coaches'];
+    $job_id = $this->getTermId('Coach', 'sp_role');
+
+    if (!empty($coaches)) {
+      foreach ($coaches as $coach) {
+        // Skip adding if player already exist
+        if ($this->checkIfCoachIdAlreadyExist($coach['id'])) continue;
+
+        $team_id = $coach['isHome'] ? $team_ids[0] : $team_ids[1];
+
+        $post_data = [
+          'post_title'   => $coach['name'],
+          'post_status'  => 'publish',
+          'post_author'  => get_current_user_id(),
+          'post_type'    => 'sp_staff'
+        ];
+
+        $post_id = wp_insert_post($post_data);
+
+        if (is_wp_error($post_id)) {
+          echo 'Error creating post: ' . $post_id->get_error_message();
+          error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
+        } else {
+          // Save rugby explorer data to postmeta
+          update_post_meta($post_id, 'rugby_explorer_coach_data', $coach);
+
+          // Coach ID
+          update_post_meta($post_id, 'coach_id', $coach['id']);
+
+          // Team
+          update_post_meta($post_id, 'sp_current_team', $team_id);
+          update_post_meta($post_id, 'sp_team', $team_id);
+
+          // League
+          wp_set_object_terms($post_id, $sportspressLeagueId, 'sp_league');
+
+          // Season
+          wp_set_object_terms($post_id, $sportspressSeasonId, 'sp_season');
+
+          // Job as Coach
+          wp_set_object_terms($post_id, $job_id, 'sp_role');
+        }
+      }
+    }
+  }
+
+  public function createOfficial($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
+  {
+    global $rea;
+
+    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
+    $referees = $data['allMatchStatsSummary']['referees'];
+
+    if (!empty($referees)) {
+      foreach ($referees as $referee) {
+        // Skip adding if player already exist
+        if ($this->checkIfOfficialIdAlreadyExist($referee['refereeId'])) continue;
+
+        $post_data = [
+          'post_title'   => $referee['refereeName'],
+          'post_status'  => 'publish',
+          'post_author'  => get_current_user_id(),
+          'post_type'    => 'sp_official'
+        ];
+
+        $post_id = wp_insert_post($post_data);
+
+        if (is_wp_error($post_id)) {
+          echo 'Error creating post: ' . $post_id->get_error_message();
+          error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
+        } else {
+          // Save rugby explorer data to postmeta
+          update_post_meta($post_id, 'rugby_explorer_referee_data', $referee);
+
+          // Referee ID
+          update_post_meta($post_id, 'referee_id', $referee['refereeId']);
+
+          // Duty
+          $duty_id = $this->getTermId($referee['type'], 'sp_duty');
+          wp_set_object_terms($post_id, $duty_id, 'sp_duty');
+        }
+      }
+    }
+  }
+
   // HELPER FUNCTIONS
   public function getSiteUrl()
   {
@@ -387,10 +481,7 @@ class Sportspress
       return $term_id;
     }
 
-    $new_term = wp_insert_term(
-      $name,   // Term name
-      'sp_season'              // Your custom taxonomy
-    );
+    $new_term = wp_insert_term($name, 'sp_season');
 
     return $new_term['term_id'];
   }
@@ -496,6 +587,64 @@ class Sportspress
     return !empty($sp_player_ids) ? true : false;
   }
 
+  public function checkIfCoachIdAlreadyExist($coach_id)
+  {
+
+    $sp_player_ids = get_posts(array(
+      'post_type'      => 'sp_staff',
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => 'coach_id',
+          'compare' => '=',
+          'value' => $coach_id
+        )
+      ),
+    ));
+
+    return !empty($sp_player_ids) ? true : false;
+  }
+
+  public function checkIfOfficialIdAlreadyExist($official_id)
+  {
+
+    $sp_player_ids = get_posts(array(
+      'post_type'      => 'sp_official',
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => 'official_id',
+          'compare' => '=',
+          'value' => $official_id
+        )
+      ),
+    ));
+
+    return !empty($sp_player_ids) ? true : false;
+  }
+
+  public function getTermId($name, $taxonomy)
+  {
+    $term = get_term_by('name', $name, $taxonomy);
+
+    if ($term) {
+      $term_id = $term->term_id;
+      return $term_id;
+    }
+
+    $new_term = wp_insert_term(
+      $name,
+      $taxonomy
+    );
+
+    if (! is_wp_error($term)) {
+      return $new_term['term_id'];
+    } else {
+      error_log('Error getTermId: ' . $new_term->get_error_message());
+    }
+  }
 
   public function createAttachmentFromUrl($image_url, $post_id = 0)
   {

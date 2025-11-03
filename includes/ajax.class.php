@@ -107,7 +107,7 @@ class Ajax
 
     try {
 
-      $post_type = array('sp_event', 'sp_team', 'sp_player');
+      $post_type = array('sp_event', 'sp_team', 'sp_player', 'sp_staff', 'sp_official');
       $batch_size = 100;
 
       while (true) {
@@ -128,7 +128,7 @@ class Ajax
         // sleep(1);
       }
 
-      $taxonomies = array('sp_season', 'sp_league', 'sp_venue'); // your custom taxonomy name 
+      $taxonomies = array('sp_season', 'sp_league', 'sp_venue', 'sp_role', 'sp_duty');
 
       foreach ($taxonomies as $taxonomy) {
         $terms = get_terms([
