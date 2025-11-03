@@ -163,6 +163,9 @@ class Sportspress
           );
         }
 
+        // Players and scores
+        // $this->createPlayers($game['id'], $team_ids);
+
         // Add game ID / Match ID
         update_post_meta(
           $body['id'],
@@ -276,6 +279,55 @@ class Sportspress
         return $data->data->term_id;
 
       return $data->id;
+    }
+  }
+
+  public function createPlayers($matchId, $team_ids)
+  {
+    global $rea;
+
+    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
+    $players = $data['allMatchStatsSummary']['lineUp']['players'];
+    // error_log(print_r($players, true));
+    if (!empty($players)) {
+      foreach ($players as $player) {
+        $options = get_option('rugbyexplorer_options');
+        $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/venues';
+        $username =  $options['sportspress_field_api_username'];
+        $app_password = $options['sportspress_field_api_password'];
+
+        $args = array(
+          'headers' => array(
+            'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
+            'Content-Type'  => 'application/json'
+          ),
+          'body'    => wp_json_encode(array(
+            'title'       => $player['name'],
+            'status'      => 'publish',
+            "meta" => array(
+              "sp_number" => $player['shirtNumber'],
+              "sp_team" => $player['isHome'] ? $team_ids[0] : $team_ids[1],
+              "sp_position" => "Forward"
+            )
+          )),
+          'method'  => 'POST',
+          'timeout' => 60
+        );
+
+        $response = wp_remote_post($url, $args);
+
+        if (is_wp_error($response)) {
+          // error_log('SportsPress Player Creation Failed: ' . $response->get_error_message());
+          return 0;
+        } else {
+          $data = json_decode(wp_remote_retrieve_body($response));
+          error_log('SportsPress Player Created: ' . print_r($data, true));
+          // if (isset($data->code) && $data->code == 'term_exists')
+          //   return $data->data->term_id;
+
+          // return $data->id;
+        }
+      }
     }
   }
 

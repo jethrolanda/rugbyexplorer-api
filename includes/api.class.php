@@ -171,13 +171,13 @@ class Api
     }
   }
 
-  public function getLadder()
+  public function getLadder($matchId)
   {
     $body = [
       "operationName" => "CompLadderQuery",
       "variables" => [
         "comp" => [
-          "id" => "mLGoqgHnacX2AnmgD",
+          "id" => $matchId, //"mLGoqgHnacX2AnmgD",
           "sourceType" => "2"
         ]
       ],

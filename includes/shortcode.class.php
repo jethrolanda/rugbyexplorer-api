@@ -67,14 +67,7 @@ class Shortcode
 
   public function getPlayerLineUpData($args = array())
   {
-    // args example
-    // $args = array(
-    //   'season' => '2025',
-    //   'competition' => 'mLGoqgHnacX2AnmgD',
-    //   'team' => 'DZJhdynaY4wSDBQpQ',
-    //   'entityId' => '53371',
-    //   'type' => 'fixtures' or 'results'
-    // );
+    //  fixture_id, match id, event id from api
     extract($args);
 
     // Rugby Xplorer GraphQL endpoint (update if different)
