@@ -179,6 +179,9 @@ class Sportspress
             $result
           );
         }
+
+        // Box Scores
+        $this->addPointsSummary($game['id'], $team_ids, $body['id']);
       }
     }
   }
@@ -455,6 +458,134 @@ class Sportspress
     }
   }
 
+  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false)
+  {
+
+    global $rea;
+    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
+
+    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
+    $players = $data['allMatchStatsSummary']['lineUp']['players'];
+    $players = array_merge($substitutes, $players);
+    usort($players, function ($a, $b) {
+      return $a['position'] <=> $b['position']; // ascending
+    });
+
+    $points = $data['allMatchStatsSummary']['pointsSummary'];
+    $scores = array();
+
+    // t = tries
+    if (!empty($points['tries'])) {
+      foreach ($points['tries'] as $tries) {
+        // find the player details. need id
+        $matches = array_filter(
+          $players,
+          fn($p) =>
+          stripos($p['name'], $tries['playerName']) !== false
+        );
+        if (!empty($matches)) {
+          $matches = array_values($matches);
+          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+        }
+
+        // Add player to match. Avoid duplicates
+        if ($event_id && !in_array($player_id, get_post_meta($event_id, 'sp_player', false))) {
+          add_post_meta($event_id, 'sp_player', $player_id);
+        }
+
+        if ($tries['isHome']) {
+          $is_array = $scores[$team_ids[0]][$player_id] ?? false;
+          if ($is_array == false) {
+            $scores[$team_ids[0]][$player_id] = array(
+              'number' => $matches[0]['shirtNumber'],
+              'position' => array($matches[0]['position']),
+              't' => count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName'])),
+              'c' => 0,
+              'p' => 0,
+              'dg' => 0,
+              'status' => 'lineup',
+              'sub' => '0'
+            );
+          }
+        } else {
+          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
+          if ($is_array == false) {
+            $scores[$team_ids[1]][$player_id] = array(
+              'number' => $matches[0]['shirtNumber'],
+              'position' => array($matches[0]['position']),
+              't' => count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName'])),
+              'c' => 0,
+              'p' => 0,
+              'dg' => 0,
+              'status' => 'lineup',
+              'sub' => '0'
+            );
+          }
+        }
+      }
+    }
+
+    // c = conversion
+    if (!empty($points['conversions'])) {
+      foreach ($points['conversions'] as $conversion) {
+        // find the player details. need id
+        $matches = array_filter(
+          $players,
+          fn($p) =>
+          stripos($p['name'], $conversion['playerName']) !== false
+        );
+
+        if (!empty($matches)) {
+          $matches = array_values($matches);
+          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+        }
+
+        // Add player to match. Avoid duplicates
+        if ($event_id && !in_array($player_id, get_post_meta($event_id, 'sp_player', false))) {
+          add_post_meta($event_id, 'sp_player', $player_id);
+        }
+
+        if ($conversion['isHome']) {
+          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
+          if ($is_array == false) {
+            $scores[$team_ids[0]][$player_id] = array(
+              'number' => $matches[0]['shirtNumber'],
+              'position' => array($matches[0]['position']),
+              't' => 0,
+              'c' => count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName'])),
+              'p' => 0,
+              'dg' => 0,
+              'status' => 'lineup',
+              'sub' => '0'
+            );
+          } else {
+            $scores[$team_ids[0]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
+          }
+        } else {
+          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
+          if ($is_array == false) {
+            $scores[$team_ids[1]][$player_id] = array(
+              'number' => $matches[0]['shirtNumber'],
+              'position' => array($matches[0]['position']),
+              't' => 0,
+              'c' => count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName'])),
+              'p' => 0,
+              'dg' => 0,
+              'status' => 'lineup',
+              'sub' => '0'
+            );
+          } else {
+            $scores[$team_ids[1]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
+          }
+        }
+      }
+    }
+
+    // Box score
+    update_post_meta($event_id, 'sp_players', $scores);
+    error_log(print_r($scores, true));
+  }
+
   // HELPER FUNCTIONS
   public function getSiteUrl()
   {
@@ -615,7 +746,7 @@ class Sportspress
       'posts_per_page' => -1,
       'meta_query'     => array(
         array(
-          'key'     => 'official_id',
+          'key'     => 'referee_id',
           'compare' => '=',
           'value' => $official_id
         )
@@ -623,6 +754,24 @@ class Sportspress
     ));
 
     return !empty($sp_player_ids) ? true : false;
+  }
+
+  public function getPostIdByMetaValue($post_type, $meta_key, $meta_value)
+  {
+    $sp_player_ids = get_posts(array(
+      'post_type'      => $post_type,
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => $meta_key,
+          'compare' => '=',
+          'value' => $meta_value
+        )
+      ),
+    ));
+
+    return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
   }
 
   public function getTermId($name, $taxonomy)
