@@ -149,7 +149,7 @@ class Sportspress
         $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
 
         // Create staff
-        $this->createOfficial($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+        $this->createOfficial($game['id'], $body['id']);
 
         // Results 
         if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
@@ -182,7 +182,10 @@ class Sportspress
 
         // Box Scores
         $this->addPointsSummary($game['id'], $team_ids, $body['id']);
+
+        $this->assignPlayers($game['id'], $team_ids, $body['id']);
       }
+      break;
     }
   }
 
@@ -419,42 +422,56 @@ class Sportspress
     }
   }
 
-  public function createOfficial($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
+  public function createOfficial($matchId,  $event_id)
   {
     global $rea;
 
     $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
     $referees = $data['allMatchStatsSummary']['referees'];
+    $officials = array();
 
     if (!empty($referees)) {
       foreach ($referees as $referee) {
+
+        // Create Duty / Get Duty ID
+        $duty_id = $this->getTermId($referee['type'], 'sp_duty');
+
         // Skip adding if player already exist
-        if ($this->checkIfOfficialIdAlreadyExist($referee['refereeId'])) continue;
+        if ($this->checkIfOfficialIdAlreadyExist($referee['refereeId']) == false) {
 
-        $post_data = [
-          'post_title'   => $referee['refereeName'],
-          'post_status'  => 'publish',
-          'post_author'  => get_current_user_id(),
-          'post_type'    => 'sp_official'
-        ];
+          $post_data = [
+            'post_title'   => $referee['refereeName'],
+            'post_status'  => 'publish',
+            'post_author'  => get_current_user_id(),
+            'post_type'    => 'sp_official'
+          ];
 
-        $post_id = wp_insert_post($post_data);
+          $post_id = wp_insert_post($post_data);
 
-        if (is_wp_error($post_id)) {
-          echo 'Error creating post: ' . $post_id->get_error_message();
-          error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
+          if (is_wp_error($post_id)) {
+            echo 'Error creating post: ' . $post_id->get_error_message();
+            error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
+          } else {
+            // Save rugby explorer data to postmeta
+            update_post_meta($post_id, 'rugby_explorer_referee_data', $referee);
+
+            // Referee ID
+            update_post_meta($post_id, 'referee_id', $referee['refereeId']);
+
+            // Assign Duty
+            wp_set_object_terms($post_id, $duty_id, 'sp_duty');
+
+            // Assign officials to array
+            $officials[$duty_id][] = $post_id;
+          }
         } else {
-          // Save rugby explorer data to postmeta
-          update_post_meta($post_id, 'rugby_explorer_referee_data', $referee);
-
-          // Referee ID
-          update_post_meta($post_id, 'referee_id', $referee['refereeId']);
-
-          // Duty
-          $duty_id = $this->getTermId($referee['type'], 'sp_duty');
-          wp_set_object_terms($post_id, $duty_id, 'sp_duty');
+          // Assign officials to array
+          $officials[$duty_id][] = $post_id;
         }
       }
+      error_log(print_r($officials, true));
+      // Assign Officials to match
+      update_post_meta($event_id, 'sp_officials', $officials);
     }
   }
 
@@ -490,37 +507,41 @@ class Sportspress
 
         // Add player to match. Avoid duplicates
         if ($event_id && !in_array($player_id, get_post_meta($event_id, 'sp_player', false))) {
-          add_post_meta($event_id, 'sp_player', $player_id);
+          // add_post_meta($event_id, 'sp_player', $player_id);
         }
 
         if ($tries['isHome']) {
-          $is_array = $scores[$team_ids[0]][$player_id] ?? false;
-          if ($is_array == false) {
-            $scores[$team_ids[0]][$player_id] = array(
-              'number' => $matches[0]['shirtNumber'],
-              'position' => array($matches[0]['position']),
-              't' => count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName'])),
-              'c' => 0,
-              'p' => 0,
-              'dg' => 0,
-              'status' => 'lineup',
-              'sub' => '0'
-            );
-          }
+          $scores[$team_ids[0]][$player_id] = array(
+            'number' => 0,
+            'position' => array(0),
+            't' => 0,
+            'c' => 0,
+            'p' => 0,
+            'dg' => 0,
+            'status' => 'lineup',
+            'sub' => '0'
+          );
         } else {
-          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
-          if ($is_array == false) {
-            $scores[$team_ids[1]][$player_id] = array(
-              'number' => $matches[0]['shirtNumber'],
-              'position' => array($matches[0]['position']),
-              't' => count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName'])),
-              'c' => 0,
-              'p' => 0,
-              'dg' => 0,
-              'status' => 'lineup',
-              'sub' => '0'
-            );
-          }
+          $scores[$team_ids[1]][$player_id] = array(
+            'number' => 0,
+            'position' => array(0),
+            't' => 0,
+            'c' => 0,
+            'p' => 0,
+            'dg' => 0,
+            'status' => 'lineup',
+            'sub' => '0'
+          );
+        }
+
+        if ($tries['isHome']) {
+          $scores[$team_ids[0]][$player_id]['number'] = $matches[0]['shirtNumber'];
+          $scores[$team_ids[0]][$player_id]['position'] = array($matches[0]['position']);
+          $scores[$team_ids[0]][$player_id]['t'] = count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName']));
+        } else {
+          $scores[$team_ids[1]][$player_id]['number'] = $matches[0]['shirtNumber'];
+          $scores[$team_ids[1]][$player_id]['position'] = array($matches[0]['position']);
+          $scores[$team_ids[1]][$player_id]['t'] = count(array_filter($points['tries'], fn($p) => $p['playerName'] === $tries['playerName']));
         }
       }
     }
@@ -542,50 +563,94 @@ class Sportspress
 
         // Add player to match. Avoid duplicates
         if ($event_id && !in_array($player_id, get_post_meta($event_id, 'sp_player', false))) {
-          add_post_meta($event_id, 'sp_player', $player_id);
+          // add_post_meta($event_id, 'sp_player', $player_id);
+        }
+
+        if ($tries['isHome']) {
+          $scores[$team_ids[0]][$player_id] = array(
+            'number' => 0,
+            'position' => array(0),
+            't' => 0,
+            'c' => 0,
+            'p' => 0,
+            'dg' => 0,
+            'status' => 'lineup',
+            'sub' => '0'
+          );
+        } else {
+          $scores[$team_ids[1]][$player_id] = array(
+            'number' => 0,
+            'position' => array(0),
+            't' => 0,
+            'c' => 0,
+            'p' => 0,
+            'dg' => 0,
+            'status' => 'lineup',
+            'sub' => '0'
+          );
         }
 
         if ($conversion['isHome']) {
-          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
-          if ($is_array == false) {
-            $scores[$team_ids[0]][$player_id] = array(
-              'number' => $matches[0]['shirtNumber'],
-              'position' => array($matches[0]['position']),
-              't' => 0,
-              'c' => count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName'])),
-              'p' => 0,
-              'dg' => 0,
-              'status' => 'lineup',
-              'sub' => '0'
-            );
-          } else {
-            $scores[$team_ids[0]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
-          }
+          $scores[$team_ids[0]][$player_id]['number'] = $matches[0]['shirtNumber'];
+          $scores[$team_ids[0]][$player_id]['position'] = array($matches[0]['position']);
+          $scores[$team_ids[0]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
         } else {
-          $is_array = $scores[$team_ids[1]][$player_id] ?? false;
-          if ($is_array == false) {
-            $scores[$team_ids[1]][$player_id] = array(
-              'number' => $matches[0]['shirtNumber'],
-              'position' => array($matches[0]['position']),
-              't' => 0,
-              'c' => count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName'])),
-              'p' => 0,
-              'dg' => 0,
-              'status' => 'lineup',
-              'sub' => '0'
-            );
-          } else {
-            $scores[$team_ids[1]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
-          }
+          $scores[$team_ids[1]][$player_id]['number'] = $matches[0]['shirtNumber'];
+          $scores[$team_ids[1]][$player_id]['position'] = array($matches[0]['position']);
+          $scores[$team_ids[1]][$player_id]['c'] = count(array_filter($points['conversions'], fn($p) => $p['playerName'] === $conversion['playerName']));
         }
       }
     }
 
     // Box score
     update_post_meta($event_id, 'sp_players', $scores);
-    error_log(print_r($scores, true));
+    // error_log(print_r($scores, true));
   }
 
+
+  public function assignPlayers($game_id, $team_ids, $event_id)
+  {
+    global $rea;
+    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $game_id));
+    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
+    $players = $data['allMatchStatsSummary']['lineUp']['players'];
+    $players = array_merge($substitutes, $players);
+    usort($players, function ($a, $b) {
+      return $a['position'] <=> $b['position']; // ascending
+    });
+
+    $tries = $data['allMatchStatsSummary']['pointsSummary']['tries'];
+    $conversions = $data['allMatchStatsSummary']['pointsSummary']['conversions'];
+    $scores = array_merge($tries, $conversions);
+
+    $team_members = array(array(0), array(0));
+    foreach ($scores as $score) {
+
+      // find the player details. need id
+      $matches = array_filter(
+        $players,
+        fn($p) =>
+        stripos($p['name'], $score['playerName']) !== false
+      );
+      if (!empty($matches)) {
+        $matches = array_values($matches);
+        $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+      }
+
+      if ($player_id) {
+        if ($score['isHome']) {
+          $team_members[0][] = $player_id;
+        } else {
+          $team_members[1][] = $player_id;
+        }
+      }
+    }
+    $team_members[0] = array_values(array_unique($team_members[0]));
+    $team_members[1] = array_values(array_unique($team_members[1]));
+
+    sp_update_post_meta_recursive($event_id, 'sp_player', $team_members);
+    // error_log(print_r($team_members, true));
+  }
   // HELPER FUNCTIONS
   public function getSiteUrl()
   {
@@ -753,7 +818,7 @@ class Sportspress
       ),
     ));
 
-    return !empty($sp_player_ids) ? true : false;
+    return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
   }
 
   public function getPostIdByMetaValue($post_type, $meta_key, $meta_value)

@@ -56,7 +56,10 @@ class RugbyExplorer
       global $rea;
       $options = get_option('rugbyexplorer_options');
 
-
+      $test = array(
+        '25848'
+      );
+      // error_log(print_r(serialize($test), true));
       foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
         $args = array(
           'season' => $team['season'],
@@ -66,6 +69,7 @@ class RugbyExplorer
           'type' =>  'results'
         );
         $rea->api->getData($args);
+        break;
       }
 
 
