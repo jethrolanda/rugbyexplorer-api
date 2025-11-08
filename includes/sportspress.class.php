@@ -159,7 +159,7 @@ class Sportspress
         // Assign Players to teams
         $this->assignPlayers($game['id'], $team_ids, $body['id']);
       }
-      break;
+      // break;
     }
   }
 
@@ -221,7 +221,7 @@ class Sportspress
         $image_url = $team['crest'];
 
         $post_id   = $body['id']; // Optional – ID of post to attach to
-        // $attachment_id = $this->createAttachmentFromUrl($image_url, $post_id);
+        $attachment_id = $this->createAttachmentFromUrl($image_url, $post_id);
       }
     }
 
