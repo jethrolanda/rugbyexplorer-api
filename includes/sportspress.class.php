@@ -151,38 +151,12 @@ class Sportspress
         // Create staff
         $this->createOfficial($game['id'], $body['id']);
 
-        // Results 
-        if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
-          $result = array();
-          $result[$team_ids[0]] = array(
-            "tries" => '',
-            "conversions" => '',
-            "bp" => '',
-            "points" => $game['homeTeam']['score'],
-            "outcome" => array(
-              $game['homeTeam']['score'] > $game['awayTeam']['score'] ? "win" : "loss"
-            )
-          );
-          $result[$team_ids[1]] = array(
-            "tries" => '',
-            "conversions" => '',
-            "bp" => '',
-            "points" => $game['awayTeam']['score'],
-            "outcome" => array(
-              $game['awayTeam']['score'] > $game['homeTeam']['score'] ? "win" : "loss"
-            )
-          );
 
-          update_post_meta(
-            $body['id'],
-            'sp_results',
-            $result
-          );
-        }
 
         // Box Scores
-        $this->addPointsSummary($game['id'], $team_ids, $body['id']);
+        $this->addPointsSummary($game['id'], $team_ids, $body['id'], $game);
 
+        // Assign Players to teams
         $this->assignPlayers($game['id'], $team_ids, $body['id']);
       }
       break;
@@ -437,7 +411,8 @@ class Sportspress
         $duty_id = $this->getTermId($referee['type'], 'sp_duty');
 
         // Skip adding if player already exist
-        if ($this->checkIfOfficialIdAlreadyExist($referee['refereeId']) == false) {
+        $official_id = $this->checkIfOfficialIdAlreadyExist($referee['refereeId']);
+        if ($official_id == false) {
 
           $post_data = [
             'post_title'   => $referee['refereeName'],
@@ -466,16 +441,17 @@ class Sportspress
           }
         } else {
           // Assign officials to array
-          $officials[$duty_id][] = $post_id;
+          $officials[$duty_id][] = $official_id;
         }
       }
-      error_log(print_r($officials, true));
+
       // Assign Officials to match
       update_post_meta($event_id, 'sp_officials', $officials);
     }
   }
 
-  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false)
+  // Box scores
+  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false, $game = null)
   {
 
     global $rea;
@@ -605,6 +581,35 @@ class Sportspress
     // Box score
     update_post_meta($event_id, 'sp_players', $scores);
     // error_log(print_r($scores, true));
+
+    // Results 
+    if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
+      $result = array();
+      $result[$team_ids[0]] = array(
+        "tries" => array_sum(array_column($scores[$team_ids[0]], 't')),
+        "conversions" => array_sum(array_column($scores[$team_ids[0]], 'c')),
+        "bp" => '',
+        "points" => $game['homeTeam']['score'],
+        "outcome" => array(
+          $game['homeTeam']['score'] > $game['awayTeam']['score'] ? "win" : "loss"
+        )
+      );
+      $result[$team_ids[1]] = array(
+        "tries" => array_sum(array_column($scores[$team_ids[1]], 't')),
+        "conversions" => array_sum(array_column($scores[$team_ids[1]], 'c')),
+        "bp" => '',
+        "points" => $game['awayTeam']['score'],
+        "outcome" => array(
+          $game['awayTeam']['score'] > $game['homeTeam']['score'] ? "win" : "loss"
+        )
+      );
+
+      update_post_meta(
+        $event_id,
+        'sp_results',
+        $result
+      );
+    }
   }
 
 
