@@ -31,9 +31,6 @@ define('REA_VIEWS_ROOT_DIR',         REA_PLUGIN_DIR . 'views/');
 // Require autoloader
 require_once 'inc/autoloader.php';
 
-// Require settings
-// require_once "settings/my-first-gutenberg-app.php";
-
 // Run
 require_once 'rugbyexplorer-api.plugin.php';
 $GLOBALS['rea'] = new RugbyExplorer_API();
