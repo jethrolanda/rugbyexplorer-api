@@ -278,7 +278,7 @@ class Sportspress
         $image_url = $team['crest'];
 
         $post_id   = $body['id']; // Optional – ID of post to attach to
-        // $this->createAttachmentFromUrl($image_url, $post_id);
+        $this->createAttachmentFromUrl($image_url, $post_id);
       }
     }
 
