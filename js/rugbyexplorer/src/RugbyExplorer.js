@@ -100,7 +100,7 @@ const App = () => {
           >
             {contextHolder}
             <Card size="small" title="General" style={{ marginBottom: "16px" }}>
-              <Form.Item
+              {/* <Form.Item
                 label="SportsPress API Username"
                 name="sportspress_field_api_username"
                 rules={[
@@ -124,7 +124,7 @@ const App = () => {
                 hasFeedback
               >
                 <Input.Password />
-              </Form.Item>
+              </Form.Item> */}
               <Form.Item
                 label="Schedule Update"
                 name="rugbyexplorer_field_schedule_update"
@@ -282,54 +282,10 @@ const App = () => {
                         label="Team ID"
                         name={[field.name, "team_id"]}
                         rules={[
-                          { required: true, message: "Please input team IDq!" }
+                          { required: true, message: "Please input team ID!" }
                         ]}
                       >
                         <Input />
-                      </Form.Item>
-
-                      {/* Nest Form.List */}
-                      <Form.Item label="List" style={{ display: "none" }}>
-                        <Form.List name={[field.name, "list"]}>
-                          {(subFields, subOpt) => (
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                rowGap: 16
-                              }}
-                            >
-                              {subFields.map((subField) => (
-                                <Space key={subField.key}>
-                                  <Form.Item
-                                    noStyle
-                                    name={[subField.name, "first"]}
-                                  >
-                                    <Input placeholder="first" />
-                                  </Form.Item>
-                                  <Form.Item
-                                    noStyle
-                                    name={[subField.name, "second"]}
-                                  >
-                                    <Input placeholder="second" />
-                                  </Form.Item>
-                                  <CloseOutlined
-                                    onClick={() => {
-                                      subOpt.remove(subField.name);
-                                    }}
-                                  />
-                                </Space>
-                              ))}
-                              <Button
-                                type="dashed"
-                                onClick={() => subOpt.add()}
-                                block
-                              >
-                                + Add Sub Item
-                              </Button>
-                            </div>
-                          )}
-                        </Form.List>
                       </Form.Item>
                     </Card>
                   ))}

@@ -51,27 +51,15 @@ class Sportspress
     //   'type' => 'fixtures' or 'results'
     // );
     extract($args);
-    // error_log(print_r($games, true));
-    // error_log(print_r($args, true));
-    // return;
     @set_time_limit(0);
-
-    $options = get_option('rugbyexplorer_options');
-
-    // REST API endpoint
-    $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/events';
-
-    // Replace with your WordPress application credentials
-    $username =  $options['sportspress_field_api_username'];
-    $app_password = $options['sportspress_field_api_password'];
 
     $sportspressSeasonId = $this->getTermSeasonIdByName($season);
     $sportspressLeagueId = $this->getTermLeagueIdByName($competition);
 
     foreach ($games as $game) {
 
-      // Skip if already added
-      if ($this->checkIfGameIdAlreadyExist($game['id'])) {
+      // Skip if game is already added by checking fixture_id
+      if ($this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']) > 0) {
         continue;
       }
 
@@ -89,32 +77,10 @@ class Sportspress
         array(
           $game['homeTeam'],
           $game['awayTeam']
-        )
+        ),
+        $sportspressSeasonId,
+        $sportspressLeagueId
       );
-
-      // Prepare event data (example: rugby match)
-      // $prepared_data = array(
-      //   'title'        => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
-      //   'status'       => 'publish',
-      //   'teams'        => $team_ids, // IDs of the teams
-      //   'date'         => $game['dateTime'],
-      //   // 'venue'        => $sportsPressVenueId, // venue id
-      //   // 'competition'  => $sportspressLeagueId, // competion id or league id??
-      //   // 'season'       => $sportspressSeasonId // season id
-      // );
-
-      // $args = array(
-      //   'headers' => array(
-      //     'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
-      //     'Content-Type'  => 'application/json'
-      //   ),
-      //   'body'    => wp_json_encode($prepared_data),
-      //   'method'  => 'POST',
-      //   'timeout' => 0, // no timeout / unlimited
-      // );
-
-      // Send the request
-      // $response = wp_remote_post($url, $args);
 
       $post_data = [
         'post_title'   => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
@@ -172,62 +138,12 @@ class Sportspress
         $this->assignPlayers($game['id'], $post_id);
       }
 
-      // error_log(print_r($response, true));
-      // if (is_wp_error($response)) {
-      //   error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
-      // } else {
-      //   $body = json_decode(wp_remote_retrieve_body($response), true);
-
-      //   // Add game ID / Match ID
-      //   update_post_meta($body['id'], 'fixture_id', $game['id']);
-
-      //   // Save rugby explorer match data to postmeta
-      //   update_post_meta($body['id'], 'rugby_explorer_game_data', $game);
-
-      //   // Assign venue
-      //   wp_set_object_terms($body['id'], $sportsPressVenueId, 'sp_venue');
-
-      //   // Assign league
-      //   wp_set_object_terms($body['id'], $sportspressLeagueId, 'sp_league');
-
-      //   // Assign season
-      //   wp_set_object_terms($body['id'], $sportspressSeasonId, 'sp_season');
-
-      //   // Mode
-      //   update_post_meta($body['id'], 'sp_format', 'league');
-
-      //   // Format
-      //   update_post_meta($body['id'], 'sp_mode', 'team');
-
-      //   // Create Players
-      //   $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
-
-      //   // Create staff
-      //   $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
-
-      //   // Create staff
-      //   $this->createOfficial($game['id'], $body['id']);
-
-
-
-      //   // Box Scores
-      //   $this->addPointsSummary($game['id'], $team_ids, $body['id'], $game);
-
-      //   // Assign Players to teams
-      //   $this->assignPlayers($game['id'], $body['id']);
-      // }
-      // break;
+      break;
     }
   }
 
-  public function createTeams($teams)
+  public function createTeams($teams, $sportspressSeasonId, $sportspressLeagueId)
   {
-    // error_log(print_r($teams, true));
-
-    $options = get_option('rugbyexplorer_options');
-    $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/teams';
-    $username =  $options['sportspress_field_api_username'];
-    $app_password = $options['sportspress_field_api_password'];
     $team_ids = array();
 
     foreach ($teams as $team) {
@@ -242,42 +158,40 @@ class Sportspress
       }
 
       // Check if team exist
-      $team_id = $this->checkIfTeamIdAlreadyExist($team_id_api);
+      $team_id = $this->getPostIdByMetaValue('sp_team', 'team_id', $team_id_api);
+
       if ($team_id > 0) {
         $team_ids[] = $team_id;
         continue;
       }
 
-      $data = array(
-        'title'       => $team_name,
-        'status'      => 'publish',
-        'description' => ''
+      $post_data = array(
+        'post_title'   => $team_name,
+        'post_status'  => 'publish',
+        'post_author'  => get_current_user_id(),
+        'post_type'    => 'sp_team'
       );
 
-      $args = array(
-        'headers' => array(
-          'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
-          'Content-Type'  => 'application/json'
-        ),
-        'body'    => wp_json_encode($data),
-        'timeout' => 0 // increase timeout for Docker or slow connections
-      );
+      $post_id = wp_insert_post($post_data);
 
-
-      $response = wp_remote_post($url, $args);
-
-      if (is_wp_error($response)) {
-        // error_log('SportsPress Team Creation Failed: ' . $response->get_error_message());
-        $team_ids[] = 0;
+      if (is_wp_error($post_id)) {
+        echo 'Error creating post: ' . $post_id->get_error_message();
+        error_log('SportsPress Player Creation Failed: ' . $post_id->get_error_message());
       } else {
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        // error_log('SportsPress Team Created: ' . $team_name);
-        $team_ids[] = $body['id'];
-        update_post_meta($body['id'], 'team_id', $team_id_api);
+
+        $team_ids[] = $post_id;
+
+        // Team ID
+        update_post_meta($post_id, 'team_id', $team_id_api);
+
+        // League
+        wp_set_object_terms($post_id, $sportspressLeagueId, 'sp_league');
+
+        // Season
+        wp_set_object_terms($post_id, $sportspressSeasonId, 'sp_season');
 
         $image_url = $team['crest'];
 
-        $post_id   = $body['id']; // Optional – ID of post to attach to
         $this->createAttachmentFromUrl($image_url, $post_id);
       }
     }
@@ -292,38 +206,7 @@ class Sportspress
 
     if (empty(trim($venue))) return 0;
 
-    $options = get_option('rugbyexplorer_options');
-    $url = $this->getSiteUrl() . '/wp-json/sportspress/v2/venues';
-    $username =  $options['sportspress_field_api_username'];
-    $app_password = $options['sportspress_field_api_password'];
-
-    $args = array(
-      'headers' => array(
-        'Authorization' => 'Basic ' . base64_encode("$username:$app_password"),
-        'Content-Type'  => 'application/json'
-      ),
-      'body'    => wp_json_encode(array(
-        'name'       => $venue,
-        'status'      => 'publish',
-        'description' => ''
-      )),
-      'method'  => 'POST',
-      'timeout' => 60
-    );
-
-    $response = wp_remote_post($url, $args);
-
-    if (is_wp_error($response)) {
-      // error_log('SportsPress Venue Creation Failed: ' . $response->get_error_message());
-      return 0;
-    } else {
-      $data = json_decode(wp_remote_retrieve_body($response));
-      // error_log('SportsPress Venue Created: ' . $venue);
-      if (isset($data->code) && $data->code == 'term_exists')
-        return $data->data->term_id;
-
-      return $data->id;
-    }
+    return $this->getTermId($venue, 'sp_venue');
   }
 
   public function createPlayers($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
@@ -339,7 +222,7 @@ class Sportspress
       foreach ($players as $player) {
 
         // Skip adding if player already exist
-        if ($this->checkIfPlayerIdAlreadyExist($player['id'])) continue;
+        if ($this->getPostIdByMetaValue('sp_player', 'player_id', $player['id'])) continue;
 
         $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
 
@@ -413,7 +296,7 @@ class Sportspress
     if (!empty($coaches)) {
       foreach ($coaches as $coach) {
         // Skip adding if player already exist
-        if ($this->checkIfCoachIdAlreadyExist($coach['id'])) continue;
+        if ($this->getPostIdByMetaValue('sp_staff', 'coach_id', $coach['id'])) continue;
 
         $team_id = $coach['isHome'] ? $team_ids[0] : $team_ids[1];
 
@@ -467,8 +350,8 @@ class Sportspress
         // Create Duty / Get Duty ID
         $duty_id = $this->getTermId($referee['type'], 'sp_duty');
 
-        // Skip adding if player already exist
-        $official_id = $this->checkIfOfficialIdAlreadyExist($referee['refereeId']);
+        // Skip adding if player already exist 
+        $official_id = $this->getPostIdByMetaValue('sp_official', 'referee_id', $referee['refereeId']);
         if ($official_id == false) {
 
           $post_data = [
@@ -649,7 +532,6 @@ class Sportspress
 
     // Box score
     update_post_meta($event_id, 'sp_players', $scores);
-    // error_log(print_r($scores, true));
 
     // Results 
     if (!empty($game['homeTeam']) && !empty($game['awayTeam'])) {
@@ -724,8 +606,8 @@ class Sportspress
     $team_members[1] = array_values(array_unique($team_members[1]));
 
     sp_update_post_meta_recursive($event_id, 'sp_player', $team_members);
-    // error_log(print_r($team_members, true));
   }
+
   // HELPER FUNCTIONS
   public function getSiteUrl()
   {
@@ -800,102 +682,6 @@ class Sportspress
     }
   }
 
-
-  public function checkIfTeamIdAlreadyExist($team_id)
-  {
-
-    $posts = get_posts([
-      'post_type'      => 'sp_team',
-      'posts_per_page' => 1,
-      'fields'         => 'ids',
-      'meta_query'     => [
-        [
-          'key'     => 'team_id',
-          'value'   => $team_id,
-          'compare' => '='
-        ]
-      ]
-    ]);
-
-    return !empty($posts) ? $posts[0] : false;
-  }
-
-  public function checkIfGameIdAlreadyExist($game_id)
-  {
-
-    $sp_event_ids = get_posts(array(
-      'post_type'      => 'sp_event',
-      'fields'         => 'ids',
-      'posts_per_page' => -1,
-      'meta_query'     => array(
-        array(
-          'key'     => 'game_id',
-          'compare' => '=',
-          'value' => $game_id
-        )
-      ),
-    ));
-
-    return !empty($sp_event_ids) ? true : false;
-  }
-
-  public function checkIfPlayerIdAlreadyExist($player_id)
-  {
-
-    $sp_player_ids = get_posts(array(
-      'post_type'      => 'sp_player',
-      'fields'         => 'ids',
-      'posts_per_page' => -1,
-      'meta_query'     => array(
-        array(
-          'key'     => 'player_id',
-          'compare' => '=',
-          'value' => $player_id
-        )
-      ),
-    ));
-
-    return !empty($sp_player_ids) ? true : false;
-  }
-
-  public function checkIfCoachIdAlreadyExist($coach_id)
-  {
-
-    $sp_player_ids = get_posts(array(
-      'post_type'      => 'sp_staff',
-      'fields'         => 'ids',
-      'posts_per_page' => -1,
-      'meta_query'     => array(
-        array(
-          'key'     => 'coach_id',
-          'compare' => '=',
-          'value' => $coach_id
-        )
-      ),
-    ));
-
-    return !empty($sp_player_ids) ? true : false;
-  }
-
-  public function checkIfOfficialIdAlreadyExist($official_id)
-  {
-
-    $sp_player_ids = get_posts(array(
-      'post_type'      => 'sp_official',
-      'fields'         => 'ids',
-      'posts_per_page' => -1,
-      'meta_query'     => array(
-        array(
-          'key'     => 'referee_id',
-          'compare' => '=',
-          'value' => $official_id
-        )
-      ),
-    ));
-
-    return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
-  }
-
   public function getPostIdByMetaValue($post_type, $meta_key, $meta_value)
   {
     $sp_player_ids = get_posts(array(
@@ -914,6 +700,7 @@ class Sportspress
     return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
   }
 
+  // Return term id if term name exist. If term not exist then create new and return id
   public function getTermId($name, $taxonomy)
   {
     $term = get_term_by('name', $name, $taxonomy);

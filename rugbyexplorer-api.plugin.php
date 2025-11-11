@@ -25,6 +25,7 @@ class RugbyExplorer_API
 	public $rugbyexplorer;
 	public $cron;
 	public $api;
+	public $metabox;
 
 	const VERSION = '1.0';
 
@@ -52,6 +53,7 @@ class RugbyExplorer_API
 		$this->rugbyexplorer = \REA\Plugin\RugbyExplorer::instance();
 		$this->cron = \REA\Plugin\Cron::instance();
 		$this->api = \REA\Plugin\Api::instance();
+		$this->metabox = \REA\Plugin\Metabox::instance();
 
 
 		// Register Activation Hook

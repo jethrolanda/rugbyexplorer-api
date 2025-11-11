@@ -20,71 +20,75 @@ $conversions = $data['allMatchStatsSummary']['pointsSummary']['conversions'];
     </div>
   </div>
 </div>
-<div style="display: flex;">
-  <div style="flex:1; text-align: right;">
-    <div style="display: flex; flex-direction: column;">
-      <?php
-      foreach ($tries as $trie) {
-        if ($trie['isHome']) {
-      ?>
-          <div>
-            <span><?php echo $trie['playerName']; ?></span> <?php echo $trie['pointsMinute']; ?>'
-          </div>
-      <?php
+<?php if (!empty($tries)) { ?>
+  <div style="display: flex;">
+    <div style="flex:1; text-align: right;">
+      <div style="display: flex; flex-direction: column;">
+        <?php
+        foreach ($tries as $trie) {
+          if ($trie['isHome']) {
+        ?>
+            <div>
+              <span><?php echo $trie['playerName']; ?></span> <?php echo $trie['pointsMinute']; ?>'
+            </div>
+        <?php
+          }
         }
-      }
-      ?>
+        ?>
+      </div>
+    </div>
+    <div style="flex:1; text-align: center; max-width: 150px;"><b>Tries</b></div>
+    <div style="flex:1; text-align: left;">
+      <div style="display: flex; flex-direction: column;">
+        <?php
+        foreach ($tries as $trie) {
+          if (!$trie['isHome']) {
+        ?>
+            <div>
+              <span><?php echo $trie['playerName']; ?></span> <?php echo $trie['pointsMinute']; ?>'
+            </div>
+        <?php
+          }
+        }
+        ?>
+      </div>
     </div>
   </div>
-  <div style="flex:1; text-align: center; max-width: 150px;"><b>Tries</b></div>
-  <div style="flex:1; text-align: left;">
-    <div style="display: flex; flex-direction: column;">
-      <?php
-      foreach ($tries as $trie) {
-        if (!$trie['isHome']) {
-      ?>
-          <div>
-            <span><?php echo $trie['playerName']; ?></span> <?php echo $trie['pointsMinute']; ?>'
-          </div>
-      <?php
-        }
-      }
-      ?>
-    </div>
-  </div>
-</div>
+<?php } ?>
 <br>
-<div style="display: flex;">
-  <div style="flex:1; text-align: right;">
-    <div style="display: flex; flex-direction: column;">
-      <?php
-      foreach ($conversions as $conversion) {
-        if ($conversion['isHome']) {
-      ?>
-          <div>
-            <span><?php echo $conversion['playerName']; ?></span> <?php echo $conversion['pointsMinute']; ?>'
-          </div>
-      <?php
+<?php if (!empty($conversion)) { ?>
+  <div style="display: flex;">
+    <div style="flex:1; text-align: right;">
+      <div style="display: flex; flex-direction: column;">
+        <?php
+        foreach ($conversions as $conversion) {
+          if ($conversion['isHome']) {
+        ?>
+            <div>
+              <span><?php echo $conversion['playerName']; ?></span> <?php echo $conversion['pointsMinute']; ?>'
+            </div>
+        <?php
+          }
         }
-      }
-      ?>
+        ?>
+      </div>
     </div>
-  </div>
-  <div style="flex:1; text-align: center; max-width: 150px;"><b>Conversions</b></div>
-  <div style="flex:1; text-align: left;">
-    <div style="display: flex; flex-direction: column;">
-      <?php
-      foreach ($conversions as $conversion) {
-        if (!$conversion['isHome']) {
-      ?>
-          <div>
-            <span><?php echo $conversion['playerName']; ?></span> <?php echo $conversion['pointsMinute']; ?>'
-          </div>
-      <?php
+    <div style="flex:1; text-align: center; max-width: 150px;"><b>Conversions</b></div>
+    <div style="flex:1; text-align: left;">
+      <div style="display: flex; flex-direction: column;">
+        <?php
+        foreach ($conversions as $conversion) {
+          if (!$conversion['isHome']) {
+        ?>
+            <div>
+              <span><?php echo $conversion['playerName']; ?></span> <?php echo $conversion['pointsMinute']; ?>'
+            </div>
+        <?php
+          }
         }
-      }
-      ?>
+        ?>
 
+      </div>
     </div>
   </div>
-</div>
+<?php } ?>
