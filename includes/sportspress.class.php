@@ -59,9 +59,11 @@ class Sportspress
     foreach ($games as $game) {
 
       // Skip if game is already added by checking fixture_id
-      if ($this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']) > 0) {
-        continue;
-      }
+      $fixture_id = $this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']);
+      $is_create = $fixture_id === false ? true : false;
+      // if ($this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']) > 0) {
+      //   continue;
+      // }
 
       // if no league id found then create one
       if ($sportspressLeagueId == false) {
@@ -82,15 +84,23 @@ class Sportspress
         $sportspressLeagueId
       );
 
-      $post_data = [
-        'post_title'   => $game['homeTeam']['name'] . ' vs ' . $game['awayTeam']['name'],
+      $home = !empty($game['homeTeam']['name']) ? $game['homeTeam']['name'] : "BYE";
+      $away = !empty($game['awayTeam']['name']) ? $game['awayTeam']['name'] : "BYE";
+
+      $post_data = array(
+        'post_title'   => $home . ' vs ' . $away,
         'post_date'    => $game['dateTime'],
         'post_status'  => 'publish',
         'post_author'  => get_current_user_id(),
         'post_type'    => 'sp_event'
-      ];
+      );
 
-      $post_id = wp_insert_post($post_data);
+      if ($is_create) {
+        $post_id = wp_insert_post($post_data);
+      } else {
+        $post_data['ID'] = $fixture_id;
+        $post_id = wp_update_post($post_data);
+      }
 
       if (is_wp_error($post_id)) {
         error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
@@ -203,7 +213,7 @@ class Sportspress
     global $wpdb;
     $post_title = 'BYE';
     $post_id = $wpdb->get_var($wpdb->prepare(
-      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = 'post' LIMIT 1",
+      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = 'sp_team' LIMIT 1",
       $post_title
     ));
 

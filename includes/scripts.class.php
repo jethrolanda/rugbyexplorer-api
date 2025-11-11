@@ -60,12 +60,13 @@ class Scripts
 
     if (file_exists($asset_file) && isset($_GET['page']) && $_GET['page'] == "rugbyexplorer") {
       $asset = include $asset_file;
+      $settings = get_option('rugbyexplorer_options');
       wp_register_script('rugbyexplorer-js', REA_JS_ROOT_URL . 'rugbyexplorer/build/index.js', $asset['dependencies'], $asset['version'], true);
       wp_localize_script('rugbyexplorer-js', 'rugbyexplorer_params', array(
         'rest_url'   => esc_url_raw(get_rest_url()),
         'nonce' => wp_create_nonce('wp_rest'),
         'ajax_url' => admin_url('admin-ajax.php'),
-        'settings' => get_option('rugbyexplorer_options') ?: array()
+        'settings' => $settings ? $settings : array()
         // array(
         //   'rugbyexplorer_field_api_username' => get_option('rugbyexplorer_field_api_username') ?: "",
         //   'rugbyexplorer_field_api_password' => get_option('rugbyexplorer_field_api_password') ?: "",
