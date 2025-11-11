@@ -137,8 +137,6 @@ class Sportspress
         // Assign Players to teams
         $this->assignPlayers($game['id'], $post_id);
       }
-
-      break;
     }
   }
 
@@ -153,7 +151,7 @@ class Sportspress
 
       // Skip creating team
       if ($team_id_api == 0 || empty($team_name)) {
-        $team_ids[] = 0;
+        $team_ids[] = $this->createByeTeam();
         continue;
       }
 
@@ -197,6 +195,31 @@ class Sportspress
     }
 
     return $team_ids;
+  }
+
+  public function createByeTeam()
+  {
+
+    global $wpdb;
+    $post_title = 'BYE';
+    $post_id = $wpdb->get_var($wpdb->prepare(
+      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = 'post' LIMIT 1",
+      $post_title
+    ));
+
+    if ($post_id) {
+      return $post_id;
+    }
+
+    $post_data = array(
+      'post_title'   => 'BYE',
+      'post_status'  => 'publish',
+      'post_author'  => get_current_user_id(),
+      'post_type'    => 'sp_team'
+    );
+
+    $post_id = wp_insert_post($post_data);
+    return $post_id;
   }
 
   // If venue not exist then create new

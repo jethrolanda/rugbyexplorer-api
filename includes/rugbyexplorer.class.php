@@ -69,7 +69,6 @@ class RugbyExplorer
           'type' =>  'results'
         );
         $rea->api->getData($args);
-        break;
       }
 
 
