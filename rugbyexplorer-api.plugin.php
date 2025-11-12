@@ -57,10 +57,10 @@ class RugbyExplorer_API
 
 
 		// Register Activation Hook
-		register_activation_hook(REA_PLUGIN_DIR . 'rugbyexplorer-api.php', array($this, 'activate'));
+		register_activation_hook(REA_PLUGIN_DIR . 'rugbyexplorer.php', array($this, 'activate'));
 
 		// Register Deactivation Hook
-		register_deactivation_hook(REA_PLUGIN_DIR . 'rugbyexplorer-api.php', array($this, 'deactivate'));
+		register_deactivation_hook(REA_PLUGIN_DIR . 'rugbyexplorer.php', array($this, 'deactivate'));
 	}
 
 	/**
@@ -86,7 +86,6 @@ class RugbyExplorer_API
 	 */
 	public function activate()
 	{
-		// On activation, add event in cron to delete all cached json files. Trigger twice a day.
 		if (!wp_next_scheduled('rugbyexplorer_schedule_update')) {
 			wp_schedule_event(time(), 'daily', 'rugbyexplorer_schedule_update');
 		}
