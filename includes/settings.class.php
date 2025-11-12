@@ -38,8 +38,8 @@ class Settings
      */
     add_action('admin_menu', array($this, 'register_options_page'));
 
-    // add_action('update_option_fusesport_options', array($this, 'on_setting_page_update'), 10, 2);
-    // add_action('updated_option', array($this, 'on_update_option'), 10, 3);
+    add_action('update_option_fusesport_options', array($this, 'on_setting_page_update'), 10, 2);
+    add_action('updated_option', array($this, 'on_update_option'), 10, 3);
   }
 
   /**
@@ -381,10 +381,6 @@ class Settings
   // 3️⃣ React to setting change — reschedule event if needed
   public function on_setting_page_update($old, $new)
   {
-    error_log('on_setting_page_update');
-    // error_log(print_r($old, true));
-    // error_log(print_r($new, true));
-
     if ($old['rugbyexplorer_field_schedule_update'] != $new['rugbyexplorer_field_schedule_update']) {
       // Remove old schedule
       wp_clear_scheduled_hook('rugbyexplorer_schedule_update');
