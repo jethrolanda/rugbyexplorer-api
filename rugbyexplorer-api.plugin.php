@@ -87,8 +87,8 @@ class RugbyExplorer_API
 	public function activate()
 	{
 		// On activation, add event in cron to delete all cached json files. Trigger twice a day.
-		if (!wp_next_scheduled('fusesport_schedule_update')) {
-			wp_schedule_event(time(), 'twicedaily', 'fusesport_schedule_update');
+		if (!wp_next_scheduled('rugbyexplorer_schedule_update')) {
+			wp_schedule_event(time(), 'daily', 'rugbyexplorer_schedule_update');
 		}
 	}
 
@@ -99,6 +99,6 @@ class RugbyExplorer_API
 	 */
 	public function deactivate()
 	{
-		wp_clear_scheduled_hook('fusesport_schedule_update');
+		wp_clear_scheduled_hook('rugbyexplorer_schedule_update');
 	}
 }

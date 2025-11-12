@@ -56,23 +56,24 @@ class RugbyExplorer
       global $rea;
       $options = get_option('rugbyexplorer_options');
 
-      $test = array(
-        '25848'
-      );
-      // error_log(print_r(serialize($test), true));
       foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
-        $args = array(
+        // Upcoming Fixtures
+        $rea->api->getData(array(
+          'season' => $team['season'],
+          'competition' => $team['competition_id'],
+          'team' => $team['team_id'],
+          'entityId' => (int) $team['entity_id'],
+          'type' =>  'fixtures'
+        ));
+        // Recent Results
+        $rea->api->getData(array(
           'season' => $team['season'],
           'competition' => $team['competition_id'],
           'team' => $team['team_id'],
           'entityId' => (int) $team['entity_id'],
           'type' =>  'results'
-        );
-        $rea->api->getData($args);
+        ));
       }
-
-
-      // $rea->api->getResults();
 
       wp_send_json(array(
         'status' => 'success',

@@ -192,6 +192,9 @@ class Sportspress
         // Team ID
         update_post_meta($post_id, 'team_id', $team_id_api);
 
+        // Save rugby explorer team data to postmeta
+        update_post_meta($post_id, 'rugby_explorer_game_data', $team);
+
         // League
         wp_set_object_terms($post_id, $sportspressLeagueId, 'sp_league');
 

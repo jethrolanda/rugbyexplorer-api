@@ -106,6 +106,7 @@ class Ajax
     }
 
     try {
+      @set_time_limit(0);
 
       $post_type = array('sp_event', 'sp_team', 'sp_player', 'sp_staff', 'sp_official');
       $batch_size = 100;

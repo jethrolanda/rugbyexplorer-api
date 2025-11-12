@@ -23,7 +23,7 @@ class Cron
   {
     add_filter('cron_schedules', array($this, 'add_custom_cron_schedules'));
 
-    add_action('fusesport_schedule_update', array($this, 'fusesport_schedule_update'));
+    add_action('rugbyexplorer_schedule_update', array($this, 'rugbyexplorer_schedule_update'));
   }
 
   /**
@@ -52,57 +52,36 @@ class Cron
     return $schedules;
   }
 
-  function activation_schedule_event()
-  {
-    if (! wp_next_scheduled('wce_every_five_minutes_event')) {
-      wp_schedule_event(time(), 'every_five_minutes', 'wce_every_five_minutes_event');
-    }
-  }
-
-  function deactivation_clear_event()
-  {
-    $timestamp = wp_next_scheduled('wce_every_five_minutes_event');
-    if ($timestamp) {
-      wp_unschedule_event($timestamp, 'wce_every_five_minutes_event');
-    }
-  }
-
-  public function fusesport_schedule_update()
+  public function rugbyexplorer_schedule_update()
   {
     error_log('test cron');
 
-    global $rea;
+    try {
+      global $rea;
+      $options = get_option('rugbyexplorer_options');
 
-    $options = get_option('fusesport_options');
-    $season_id = $options['fusesport_field_season_id'];
-    $requested_token = $rea->fusesport->request_token();
+      foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
 
-    if ($requested_token['status'] === 'success') {
-      $fusesport_competition_ids = array_map('trim', explode(",", $options['fusesport_field_competition_ids']));
-
-      foreach ($fusesport_competition_ids as $competition_id) {
-        $url = 'https://rugbyresults.fusesport.com/api/rugby/main_detail/' . $season_id . '?competitionID=' . $competition_id;
-        $token = $requested_token['token'];
-
-        $response = wp_remote_get($url, array(
-          'headers' => array(
-            'Authorization' => 'Bearer ' . $token,
-            'Accept'        => 'application/json',
-          ),
+        // Upcoming Fixtures
+        $rea->api->getData(array(
+          'season' => $team['season'],
+          'competition' => $team['competition_id'],
+          'team' => $team['team_id'],
+          'entityId' => (int) $team['entity_id'],
+          'type' =>  'fixtures'
         ));
 
-        if (is_wp_error($response)) {
-          error_log(print_r(array(
-            'status' => 'error',
-            'message' => $response->get_error_message(),
-          ), true));
-        } else {
-
-          $body = wp_remote_retrieve_body($response);
-          $data = json_decode($body, true);
-          $rea->sportspress->createEvents($data);
-        }
+        // Recent Results
+        $rea->api->getData(array(
+          'season' => $team['season'],
+          'competition' => $team['competition_id'],
+          'team' => $team['team_id'],
+          'entityId' => (int) $team['entity_id'],
+          'type' =>  'results'
+        ));
       }
+    } catch (\Exception $e) {
+      error_log('Cron Error: ' . $e->getMessage());
     }
   }
 }
