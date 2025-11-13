@@ -186,7 +186,7 @@ const ImportActions = () => {
       <ul>
         {eventStatus.map((status, index) => (
           <li key={index}>
-            <strong>{status.name}</strong> (Created:{" "}
+            <strong>{`${index + 1}.) ${status.name}`}</strong> (Created:{" "}
             <b>{status?.stats?.created}</b>, Updated:{" "}
             <b>{status?.stats?.updated}</b>, Failed:{" "}
             <b>{status?.stats?.failed}</b>, Time Taken:{" "}
