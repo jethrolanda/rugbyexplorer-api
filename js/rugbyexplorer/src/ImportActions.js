@@ -183,42 +183,14 @@ const ImportActions = () => {
           </div>
         </Space>
       </Card>
-      {/* <div>
-        <div>
-          {eventStatus.map((status, i) => (
-            <div key={i}>
-              <b>{status?.name}</b>
-              {status?.stats.map((stats, s) => (
-                <div key={s}>
-                  <p>Created: {stats?.created}</p>
-                  <p>Updated: {stats?.updated}</p>
-                  <p>Failed: {stats?.failed}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div> */}
       <ul>
         {eventStatus.map((status, index) => (
           <li key={index}>
-            <h4>
-              <strong>{status.name}</strong>
-            </h4>
-            <div>
-              <p>
-                Created: <b>{status?.stats?.created}</b>
-              </p>
-              <p>
-                Updated: <b>{status?.stats?.updated}</b>
-              </p>
-              <p>
-                Failed: <b>{status?.stats?.failed}</b>
-              </p>
-              <p>
-                Time Taken: <b>{status?.stats?.time}s</b>
-              </p>
-            </div>
+            <strong>{status.name}</strong> (Created:{" "}
+            <b>{status?.stats?.created}</b>, Updated:{" "}
+            <b>{status?.stats?.updated}</b>, Failed:{" "}
+            <b>{status?.stats?.failed}</b>, Time Taken:{" "}
+            <b>{status?.stats?.time}s</b>)
           </li>
         ))}
       </ul>
