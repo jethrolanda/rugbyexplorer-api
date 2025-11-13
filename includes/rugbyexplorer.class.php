@@ -53,8 +53,12 @@ class RugbyExplorer
     }
 
     try {
+      // Start the timer
+      $time_start = microtime(true);
+
       global $rea;
 
+      $team_name      = $_POST['team_name'] ?? '';
       $competition_id = $_POST['competition_id'] ?? '';
       $team_id        = $_POST['team_id'] ?? '';
       $season         = $_POST['season'] ?? '';
@@ -62,26 +66,41 @@ class RugbyExplorer
 
       if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
         // Upcoming Fixtures
-        $rea->api->getData(array(
+        $args1 = array(
           'season' => $season,
           'competition' => $competition_id,
           'team' => $team_id,
           'entityId' => (int) $entity_id,
           'type' =>  'fixtures'
-        ));
+        );
+
+        $res1 = $rea->api->getData($args1);
+        $rea->sportspress->createEvents($res1, $args1);
+
         // Recent Results
-        $rea->api->getData(array(
+        $args2 = array(
           'season' => $season,
           'competition' => $competition_id,
           'team' => $team_id,
           'entityId' => (int) $entity_id,
           'type' =>  'results'
-        ));
+        );
+        $res2 = $rea->api->getData($args2);
+        $status = $rea->sportspress->createEvents($res2, $args2);
       }
+
+      // End the timer
+      $time_end = microtime(true);
+
+      // Calculate the execution time
+      $execution_time = ($time_end - $time_start);
+
 
       wp_send_json(array(
         'status' => 'success',
-        'data' => array(),
+        'data' => array(
+          'event_status'  => array_merge($status, array('time' => round($execution_time, 2))),
+        ),
       ));
     } catch (\Exception $e) {
       wp_send_json(array(

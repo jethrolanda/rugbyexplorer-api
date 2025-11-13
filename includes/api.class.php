@@ -166,8 +166,7 @@ class Api
       $data = json_decode(wp_remote_retrieve_body($response), true);
       $results = $data['data']['getEntityFixturesAndResults'];
 
-      global $rea;
-      $rea->sportspress->createEvents($results, $args);
+      return $results;
     }
   }
 

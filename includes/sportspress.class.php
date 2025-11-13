@@ -57,6 +57,8 @@ class Sportspress
     $sportspressSeasonId = $this->getTermSeasonIdByName($season);
     $sportspressLeagueId = $this->getTermLeagueIdByName($competition);
 
+    $status = array('failed' => 0, 'created' => 0, 'updated' => 0);
+
     foreach ($games as $game) {
 
       // Skip if game is already added by checking fixture_id
@@ -101,8 +103,15 @@ class Sportspress
       }
 
       if (is_wp_error($post_id)) {
+        $status['failed']++;
         error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
       } else {
+        if ($is_create) {
+          $status['created']++;
+        } else {
+          $status['updated']++;
+        }
+
         // Add game ID / Match ID
         update_post_meta($post_id, 'fixture_id', $game['id']);
 
@@ -124,7 +133,7 @@ class Sportspress
         // Format
         update_post_meta($post_id, 'sp_mode', 'team');
 
-        sleep(1); // To avoid hitting API rate limits
+        sleep(1); // Add 1 sec delay to avoid hitting API rate limits
         // GraphQL Request Error: cURL error 28: Failed to connect to rugby-au-cms.graphcdn.app port 443 after 10001 ms: Timeout was reached
         // GraphQL Error: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
         $fixture_data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $game['id']));
@@ -158,6 +167,8 @@ class Sportspress
         $this->assignPlayers($game['id'], $post_id, $players, $fixture_data);
       }
     }
+
+    return $status;
   }
 
   public function createTeams($teams, $sportspressSeasonId, $sportspressLeagueId)

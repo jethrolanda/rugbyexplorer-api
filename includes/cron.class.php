@@ -57,29 +57,29 @@ class Cron
     error_log('test cron');
 
     try {
-      global $rea;
-      $options = get_option('rugbyexplorer_options');
+      // global $rea;
+      // $options = get_option('rugbyexplorer_options');
 
-      foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
+      // foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
 
-        // Upcoming Fixtures
-        $rea->api->getData(array(
-          'season' => $team['season'],
-          'competition' => $team['competition_id'],
-          'team' => $team['team_id'],
-          'entityId' => (int) $team['entity_id'],
-          'type' =>  'fixtures'
-        ));
+      //   // Upcoming Fixtures
+      //   $rea->api->getData(array(
+      //     'season' => $team['season'],
+      //     'competition' => $team['competition_id'],
+      //     'team' => $team['team_id'],
+      //     'entityId' => (int) $team['entity_id'],
+      //     'type' =>  'fixtures'
+      //   ));
 
-        // Recent Results
-        $rea->api->getData(array(
-          'season' => $team['season'],
-          'competition' => $team['competition_id'],
-          'team' => $team['team_id'],
-          'entityId' => (int) $team['entity_id'],
-          'type' =>  'results'
-        ));
-      }
+      //   // Recent Results
+      //   $rea->api->getData(array(
+      //     'season' => $team['season'],
+      //     'competition' => $team['competition_id'],
+      //     'team' => $team['team_id'],
+      //     'entityId' => (int) $team['entity_id'],
+      //     'type' =>  'results'
+      //   ));
+      // }
     } catch (\Exception $e) {
       error_log('Cron Error: ' . $e->getMessage());
     }
