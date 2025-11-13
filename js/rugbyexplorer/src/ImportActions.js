@@ -14,47 +14,64 @@ const ImportActions = () => {
   };
 
   const importData = () => {
-    async function importing() {
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
+      // const response = await fetch(rugbyexplorer_params.ajax_url, {
+      //   method: "POST",
+      //   headers: {
+      //     "X-WP-Nonce": rugbyexplorer_params.nonce,
+      //     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+      //   },
+      //   body: new URLSearchParams({
+      //     action: "rugbyexplorer_api"
+      //   })
+      // });
 
-        // const promises = rugbyexplorer_params?.fusesport_competition_ids.map(
-        //   async (id) => {
-        const response = await fetch(rugbyexplorer_params.ajax_url, {
-          method: "POST",
-          headers: {
-            "X-WP-Nonce": rugbyexplorer_params.nonce,
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-          },
-          body: new URLSearchParams({
-            action: "rugbyexplorer_api"
-          })
+      // if (!response.ok) throw new Error("API request failed");
+      // const { status, data } = await response.json();
+
+      // console.log(data);
+      // if (status === "success") {
+      //   openNotificationWithIcon(
+      //     "success",
+      //     "Import Successful!",
+      //     "Competitions imported successfully!"
+      //     // data?.["rugby-schedule"]?.[0]?.["competitions"]?.[0]?.["full_name"]
+      //   );
+      // }
+
+      const allRequests = Object.entries(
+        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams
+      ).reduce(async (promise, [key, team]) => {
+        return promise.then(async () => {
+          console.log("Sending", team);
+
+          const formData = new FormData();
+          formData.append("action", "rugbyexplorer_api");
+          formData.append("season", team?.season);
+          formData.append("competition_id", team?.competition_id);
+          formData.append("team_id", team?.team_id);
+          formData.append("entity_id", team?.entity_id);
+
+          const res = await fetch(rugbyexplorer_params.ajax_url, {
+            method: "POST",
+            headers: {
+              "X-WP-Nonce": rugbyexplorer_params.nonce
+            },
+            body: formData
+          });
+          const data = await res.json();
+          console.log("Done", team.name, data);
         });
+      }, Promise.resolve());
 
-        if (!response.ok) throw new Error("API request failed");
-        const { status, data } = await response.json();
-
-        console.log(data);
-        if (status === "success") {
-          openNotificationWithIcon(
-            "success",
-            "Import Successful!",
-            "Competitions imported successfully!"
-            // data?.["rugby-schedule"]?.[0]?.["competitions"]?.[0]?.["full_name"]
-          );
-        }
-        // }
-        // );
-
-        // await Promise.all(promises);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      } finally {
+      // 👇 Detect when all are done
+      allRequests.then(() => {
         setLoading(false);
-      }
+      });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     }
-
-    importing();
   };
 
   const deleteEvents = () => {

@@ -42,6 +42,7 @@ class Sportspress
 
   public function createEvents($games, $args)
   {
+    global $rea;
     // args example
     // $args = array(
     //   'season' => '2025',
@@ -61,9 +62,6 @@ class Sportspress
       // Skip if game is already added by checking fixture_id
       $fixture_id = $this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']);
       $is_create = $fixture_id === false ? true : false;
-      // if ($this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']) > 0) {
-      //   continue;
-      // }
 
       // if no league id found then create one
       if ($sportspressLeagueId == false) {
@@ -126,14 +124,26 @@ class Sportspress
         // Format
         update_post_meta($post_id, 'sp_mode', 'team');
 
+        sleep(1); // To avoid hitting API rate limits
+        // GraphQL Request Error: cURL error 28: Failed to connect to rugby-au-cms.graphcdn.app port 443 after 10001 ms: Timeout was reached
+        // GraphQL Error: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
+        $fixture_data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $game['id']));
+        $substitutes = $fixture_data['allMatchStatsSummary']['lineUp']['substitutes'];
+        $substitutes = is_array($substitutes) ? $substitutes : array();
+        $players = $fixture_data['allMatchStatsSummary']['lineUp']['players'];
+        $players = is_array($players) ? $players : array();
+        $players = array_merge($substitutes, $players);
+        $coaches = $fixture_data['allMatchStatsSummary']['lineUp']['coaches'];
+        $referees = $fixture_data['allMatchStatsSummary']['referees'];
+
         // Create Players
-        $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+        $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players);
 
         // Create staff
-        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId);
+        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches);
 
-        // Create staff
-        $this->createOfficial($game['id'], $post_id);
+        // Create official
+        $this->createOfficial($game['id'], $post_id, $referees);
 
         // Add teams
         delete_post_meta($post_id, 'sp_team');
@@ -142,10 +152,10 @@ class Sportspress
         }
 
         // Box Scores
-        $this->addPointsSummary($game['id'], $team_ids, $post_id, $game);
+        $this->addPointsSummary($game['id'], $team_ids, $post_id, $game, $players, $fixture_data);
 
         // Assign Players to teams
-        $this->assignPlayers($game['id'], $post_id);
+        $this->assignPlayers($game['id'], $post_id, $players, $fixture_data);
       }
     }
   }
@@ -245,14 +255,8 @@ class Sportspress
     return $this->getTermId($venue, 'sp_venue');
   }
 
-  public function createPlayers($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
+  public function createPlayers($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players)
   {
-    global $rea;
-
-    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
-    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
-    $players = $data['allMatchStatsSummary']['lineUp']['players'];
-    $players = array_merge($substitutes, $players);
 
     if (!empty($players)) {
       foreach ($players as $player) {
@@ -320,13 +324,8 @@ class Sportspress
   }
 
 
-  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId)
+  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coahes)
   {
-
-    global $rea;
-
-    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
-    $coaches = $data['allMatchStatsSummary']['lineUp']['coaches'];
     $job_id = $this->getTermId('Coach', 'sp_role');
 
     if (!empty($coaches)) {
@@ -372,12 +371,9 @@ class Sportspress
     }
   }
 
-  public function createOfficial($matchId,  $event_id)
+  public function createOfficial($matchId,  $event_id, $referees)
   {
-    global $rea;
 
-    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
-    $referees = $data['allMatchStatsSummary']['referees'];
     $officials = array();
 
     if (!empty($referees)) {
@@ -427,15 +423,9 @@ class Sportspress
   }
 
   // Box scores
-  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false, $game = null)
+  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false, $game = null, $players = array(), $data = array())
   {
 
-    global $rea;
-    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $matchId));
-
-    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
-    $players = $data['allMatchStatsSummary']['lineUp']['players'];
-    $players = array_merge($substitutes, $players);
     usort($players, function ($a, $b) {
       return $a['position'] <=> $b['position']; // ascending
     });
@@ -600,13 +590,9 @@ class Sportspress
   }
 
 
-  public function assignPlayers($game_id, $event_id)
+  public function assignPlayers($game_id, $event_id, $players, $data)
   {
-    global $rea;
-    $data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $game_id));
-    $substitutes = $data['allMatchStatsSummary']['lineUp']['substitutes'];
-    $players = $data['allMatchStatsSummary']['lineUp']['players'];
-    $players = array_merge($substitutes, $players);
+
     usort($players, function ($a, $b) {
       return $a['position'] <=> $b['position']; // ascending
     });
