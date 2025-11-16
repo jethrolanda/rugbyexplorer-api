@@ -302,11 +302,14 @@ class Shortcode
       ],
       'body' => wp_json_encode($body),
       'method' => 'POST',
-      'timeout' => 30,
+      'timeout' => 300,
+      // Fix for some servers not resolving IPv6 properly
+      'cookies' => array(),
+      'sslverify' => false,         // GraphCDN sometimes fails if strict SSL
     ]);
 
     if (is_wp_error($response)) {
-      error_log('GraphQL Request Error: ' . $response->get_error_message());
+      error_log('GraphQL Request Error getPlayerLineUpData: ' . $response->get_error_message());
     } else {
       $data = json_decode(wp_remote_retrieve_body($response), true);
 

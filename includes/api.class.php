@@ -158,10 +158,12 @@ class Api
       'body' => wp_json_encode($body),
       'method' => 'POST',
       'data_format' => 'body',
+      // Fix for some servers not resolving IPv6 properly 
+      'timeout' => 60,
     ]);
 
     if (is_wp_error($response)) {
-      error_log('GraphQL Error: ' . $response->get_error_message());
+      error_log('GraphQL Error getData: ' . $response->get_error_message());
     } else {
       $data = json_decode(wp_remote_retrieve_body($response), true);
       $results = $data['data']['getEntityFixturesAndResults'];
@@ -250,11 +252,10 @@ class Api
     ]);
 
     if (is_wp_error($response)) {
-      error_log('GraphQL Error: ' . $response->get_error_message());
+      error_log('GraphQL Error getLadder: ' . $response->get_error_message());
     } else {
       $data = json_decode(wp_remote_retrieve_body($response), true);
       $results = $data['data']['getEntityFixturesAndResults'];
-      error_log(print_r(count($results), true));
     }
   }
 }

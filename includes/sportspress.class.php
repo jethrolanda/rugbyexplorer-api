@@ -52,7 +52,6 @@ class Sportspress
     //   'type' => 'fixtures' or 'results'
     // );
     extract($args);
-    @set_time_limit(0);
 
     $sportspressSeasonId = $this->getTermSeasonIdByName($season);
     $sportspressLeagueId = $this->getTermLeagueIdByName($competition);
@@ -71,7 +70,7 @@ class Sportspress
       }
 
       // Create venue
-      $venue = isset($game['venue']) && !empty(trim($game['venue'])) ? trim($game['venue']) : '';
+      $venue = !empty($game['venue']) ? trim($game['venue']) : '';
       $sportsPressVenueId = empty($venue) ? 0 : $this->createVenue($venue);
 
       // Create teams
@@ -164,7 +163,7 @@ class Sportspress
         $this->addPointsSummary($game['id'], $team_ids, $post_id, $game, $players, $fixture_data);
 
         // Assign Players to teams
-        $this->assignPlayers($game['id'], $post_id, $players, $fixture_data);
+        $this->assignPlayers($post_id, $players, $fixture_data);
       }
     }
 
@@ -177,7 +176,7 @@ class Sportspress
 
     foreach ($teams as $team) {
 
-      $team_name = isset($team['name']) ? trim($team['name']) : "";
+      $team_name = !empty($team['name']) ? trim($team['name']) : "";
       $team_id_api = isset($team['teamId']) ? $team['teamId'] : "";
 
       // Skip creating team
@@ -261,7 +260,7 @@ class Sportspress
   public function createVenue($venue)
   {
 
-    if (empty(trim($venue))) return 0;
+    if (empty($venue)) return 0;
 
     return $this->getTermId($venue, 'sp_venue');
   }
@@ -601,7 +600,7 @@ class Sportspress
   }
 
 
-  public function assignPlayers($game_id, $event_id, $players, $data)
+  public function assignPlayers($event_id, $players, $data)
   {
 
     usort($players, function ($a, $b) {
@@ -669,7 +668,16 @@ class Sportspress
 
     $new_term = wp_insert_term($name, 'sp_season');
 
-    return $new_term['term_id'];
+    if (is_wp_error($new_term)) {
+      error_log('Error getTermSeasonIdByName: ' . $new_term->get_error_message());
+      if ($new_term->get_error_code() === 'term_exists') {
+        // Extract the existing term ID
+        return $new_term->get_error_data('term_exists');
+      }
+      return "";
+    } else {
+      return $new_term['term_id'];
+    }
   }
 
   public function getTermLeagueIdByName($competition)
@@ -706,7 +714,11 @@ class Sportspress
     );
 
     if (is_wp_error($new_term)) {
-      error_log('Error: ' . $new_term->get_error_message());
+      if ($new_term->get_error_code() === 'term_exists') {
+        // Extract the existing term ID
+        return $new_term->get_error_data('term_exists');
+      }
+      error_log('Error createLeague: ' . $new_term->get_error_message());
     } else {
       $term_id = $new_term['term_id'];
       update_term_meta($term_id, 'competition_id', sanitize_text_field($competition));
@@ -748,10 +760,17 @@ class Sportspress
       $taxonomy
     );
 
-    if (! is_wp_error($term)) {
-      return $new_term['term_id'];
-    } else {
+    error_log('Term Creation Error: ' . print_r($name, true));
+    error_log('Term Creation Error: ' . print_r($taxonomy, true));
+    if (is_wp_error($new_term)) {
       error_log('Error getTermId: ' . $new_term->get_error_message());
+      if ($new_term->get_error_code() === 'term_exists') {
+        // Extract the existing term ID
+        return $new_term->get_error_data('term_exists');
+      }
+      return "";
+    } else {
+      return $new_term['term_id'];
     }
   }
 

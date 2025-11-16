@@ -53,16 +53,19 @@ class RugbyExplorer
     }
 
     try {
+
+      @set_time_limit(0);
+
       // Start the timer
       $time_start = microtime(true);
 
       global $rea;
 
-      $team_name      = $_POST['team_name'] ?? '';
       $competition_id = $_POST['competition_id'] ?? '';
       $team_id        = $_POST['team_id'] ?? '';
       $season         = $_POST['season'] ?? '';
       $entity_id      = $_POST['entity_id'] ?? '';
+      $status = array();
 
       if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
         // Upcoming Fixtures
@@ -75,7 +78,9 @@ class RugbyExplorer
         );
 
         $res1 = $rea->api->getData($args1);
-        $rea->sportspress->createEvents($res1, $args1);
+        if (!empty($res1)) {
+          $status = array_merge($status, $rea->sportspress->createEvents($res1, $args1));
+        }
 
         // Recent Results
         $args2 = array(
@@ -85,8 +90,11 @@ class RugbyExplorer
           'entityId' => (int) $entity_id,
           'type' =>  'results'
         );
+
         $res2 = $rea->api->getData($args2);
-        $status = $rea->sportspress->createEvents($res2, $args2);
+        if (!empty($res2)) {
+          $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
+        }
       }
 
       // End the timer
