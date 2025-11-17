@@ -128,7 +128,9 @@ const App = () => {
               <Form.Item
                 label="Schedule Update"
                 name="rugbyexplorer_field_schedule_update"
-                tooltip={() => "Update events using WP Cron"}
+                tooltip={() =>
+                  `Schedule auto update events using WP Cron. Auto update events for ${new Date().getFullYear()} season`
+                }
               >
                 <Select
                   // onChange={handleChange}

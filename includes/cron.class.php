@@ -24,6 +24,8 @@ class Cron
     add_filter('cron_schedules', array($this, 'add_custom_cron_schedules'));
 
     add_action('rugbyexplorer_schedule_update', array($this, 'rugbyexplorer_schedule_update'));
+
+    add_filter('sportspress_list_data_event_args', array($this, 'sportspress_list_data_event_args'), 10);
   }
 
   /**
@@ -54,34 +56,49 @@ class Cron
 
   public function rugbyexplorer_schedule_update()
   {
-    error_log('test cron');
-
     try {
-      // global $rea;
-      // $options = get_option('rugbyexplorer_options');
+      global $rea;
+      $options = get_option('rugbyexplorer_options');
+      $year = date('Y');
+      foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
 
-      // foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
+        // Skip if not current season. Year today
+        if ($year != $team['season']) continue;
 
-      //   // Upcoming Fixtures
-      //   $rea->api->getData(array(
-      //     'season' => $team['season'],
-      //     'competition' => $team['competition_id'],
-      //     'team' => $team['team_id'],
-      //     'entityId' => (int) $team['entity_id'],
-      //     'type' =>  'fixtures'
-      //   ));
+        // Upcoming Fixtures
+        $rea->api->getData(array(
+          'season' => $team['season'],
+          'competition' => $team['competition_id'],
+          'team' => $team['team_id'],
+          'entityId' => (int) $team['entity_id'],
+          'type' =>  'fixtures'
+        ));
 
-      //   // Recent Results
-      //   $rea->api->getData(array(
-      //     'season' => $team['season'],
-      //     'competition' => $team['competition_id'],
-      //     'team' => $team['team_id'],
-      //     'entityId' => (int) $team['entity_id'],
-      //     'type' =>  'results'
-      //   ));
-      // }
+        // Recent Results
+        $rea->api->getData(array(
+          'season' => $team['season'],
+          'competition' => $team['competition_id'],
+          'team' => $team['team_id'],
+          'entityId' => (int) $team['entity_id'],
+          'type' =>  'results'
+        ));
+      }
     } catch (\Exception $e) {
       error_log('Cron Error: ' . $e->getMessage());
     }
+  }
+
+  public function sportspress_list_data_event_args($args)
+  {
+
+    $args['meta_query'][] = array(
+      array(
+        'key'     => 'sp_team',
+        'value'   => get_the_ID(),
+        'compare' => 'IN',
+      ),
+    );
+
+    return $args;
   }
 }

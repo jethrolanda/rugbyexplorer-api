@@ -760,8 +760,7 @@ class Sportspress
       $taxonomy
     );
 
-    error_log('Term Creation Error: ' . print_r($name, true));
-    error_log('Term Creation Error: ' . print_r($taxonomy, true));
+
     if (is_wp_error($new_term)) {
       error_log('Error getTermId: ' . $new_term->get_error_message());
       if ($new_term->get_error_code() === 'term_exists') {
