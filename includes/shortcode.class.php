@@ -25,6 +25,8 @@ class Shortcode
     add_shortcode('team_ladder', array($this, 'team_ladder'));
     add_shortcode('team_events', array($this, 'team_events'));
     add_shortcode('points_summary', array($this, 'points_summary'));
+
+    add_shortcode('top_scorer', array($this, 'top_scorer'));
   }
 
   /**
@@ -589,6 +591,26 @@ class Shortcode
     }
 
     // content
+    return ob_get_clean();
+  }
+
+  public function top_scorer($atts)
+  {
+    $atts = shortcode_atts(array(
+      'playerlist_id' => 0,
+    ), $atts, 'points_summary');
+
+    $id = $atts['playerlist_id'];
+    ob_start();
+
+    if ($id) {
+      echo "<div class='sportspress'>";
+      require(REA_VIEWS_ROOT_DIR . 'player-list.php');
+      echo "</div>";
+    } else {
+      echo 'Please provide a valid Player List ID. Go to Players -> Players Lists to create one.';
+    }
+
     return ob_get_clean();
   }
 }

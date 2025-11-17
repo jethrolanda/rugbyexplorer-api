@@ -25,7 +25,8 @@ class Cron
 
     add_action('rugbyexplorer_schedule_update', array($this, 'rugbyexplorer_schedule_update'));
 
-    add_filter('sportspress_list_data_event_args', array($this, 'sportspress_list_data_event_args'), 10);
+    // add_filter('sportspress_list_data_event_args', array($this, 'sportspress_list_data_event_args'), 10);
+
   }
 
   /**
@@ -98,6 +99,7 @@ class Cron
         'compare' => 'IN',
       ),
     );
+
 
     return $args;
   }
