@@ -145,7 +145,7 @@ class Sportspress
         $referees = $fixture_data['allMatchStatsSummary']['referees'];
 
         // Create Players
-        $this->createPlayers($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players);
+        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players);
 
         // Create staff
         $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches);
@@ -160,7 +160,7 @@ class Sportspress
         }
 
         // Box Scores
-        $this->addPointsSummary($game['id'], $team_ids, $post_id, $game, $players, $fixture_data);
+        $this->addPointsSummary($team_ids, $post_id, $game, $players, $fixture_data);
 
         // Assign Players to teams
         $this->assignPlayers($post_id, $players, $fixture_data);
@@ -265,14 +265,16 @@ class Sportspress
     return $this->getTermId($venue, 'sp_venue');
   }
 
-  public function createPlayers($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players)
+  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players)
   {
 
     if (!empty($players)) {
       foreach ($players as $player) {
 
+        $player_id = substr($player['id'], 0, 17);
+
         // Skip adding if player already exist
-        if ($this->getPostIdByMetaValue('sp_player', 'player_id', $player['id'])) continue;
+        if ($this->getPostIdByMetaValue('sp_player', 'player_id', $player_id)) continue;
 
         $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
 
@@ -294,7 +296,7 @@ class Sportspress
           update_post_meta($post_id, 'rugby_explorer_player_data', $player);
 
           // Player ID
-          update_post_meta($post_id, 'player_id', $player['id']);
+          update_post_meta($post_id, 'player_id', $player_id);
 
           // Squad Number / shirtNumber
           update_post_meta($post_id, 'sp_number', $player['shirtNumber']); //shirtNumber
@@ -433,7 +435,7 @@ class Sportspress
   }
 
   // Box scores
-  public function addPointsSummary($matchId, $team_ids = array(), $event_id = false, $game = null, $players = array(), $data = array())
+  public function addPointsSummary($team_ids = array(), $event_id = false, $game = null, $players = array(), $data = array())
   {
 
     usort($players, function ($a, $b) {
@@ -458,7 +460,8 @@ class Sportspress
         $player_id = null;
         if (!empty($matches)) {
           $matches = array_values($matches);
-          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+          $match_player_id = substr($matches[0]['id'], 0, 17);
+          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $match_player_id);
         }
 
         // Add player to match. Avoid duplicates
@@ -518,7 +521,8 @@ class Sportspress
         $player_id = null;
         if (!empty($matches)) {
           $matches = array_values($matches);
-          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+          $match_player_id = substr($matches[0]['id'], 0, 17);
+          $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $match_player_id);
         }
 
         // Add player to match. Avoid duplicates
@@ -623,7 +627,8 @@ class Sportspress
       $player_id = false;
       if (!empty($matches)) {
         $matches = array_values($matches);
-        $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $matches[0]['id']);
+        $match_player_id = substr($matches[0]['id'], 0, 17);
+        $player_id = $this->getPostIdByMetaValue('sp_player', 'player_id', $match_player_id);
       }
 
       if ($player_id) {
