@@ -108,7 +108,7 @@ class Ajax
     try {
       @set_time_limit(0);
 
-      $post_type = array('sp_player');
+      $post_type = array('sp_event', 'sp_team', 'sp_player', 'sp_staff', 'sp_official');
       $batch_size = 100;
 
       while (true) {
@@ -129,20 +129,20 @@ class Ajax
         // sleep(1);
       }
 
-      // $taxonomies = array('sp_season', 'sp_league', 'sp_venue', 'sp_role', 'sp_duty');
+      $taxonomies = array('sp_season', 'sp_league', 'sp_venue', 'sp_role', 'sp_duty');
 
-      // foreach ($taxonomies as $taxonomy) {
-      //   $terms = get_terms([
-      //     'taxonomy'   => $taxonomy,
-      //     'hide_empty' => false,
-      //   ]);
+      foreach ($taxonomies as $taxonomy) {
+        $terms = get_terms([
+          'taxonomy'   => $taxonomy,
+          'hide_empty' => false,
+        ]);
 
-      //   if (!empty($terms) && !is_wp_error($terms)) {
-      //     foreach ($terms as $term) {
-      //       wp_delete_term($term->term_id, $taxonomy);
-      //     }
-      //   }
-      // }
+        if (!empty($terms) && !is_wp_error($terms)) {
+          foreach ($terms as $term) {
+            wp_delete_term($term->term_id, $taxonomy);
+          }
+        }
+      }
 
       wp_send_json(array(
         'status' => 'success',

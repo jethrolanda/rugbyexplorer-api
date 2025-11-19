@@ -86,12 +86,20 @@ class Sportspress
       $home = !empty($game['homeTeam']['name']) ? $game['homeTeam']['name'] : "BYE";
       $away = !empty($game['awayTeam']['name']) ? $game['awayTeam']['name'] : "BYE";
 
+      $dt_utc = new \DateTime($game['dateTime'], new \DateTimeZone('UTC'));
+      $dt_local = clone $dt_utc;
+      $dt_local->setTimezone(wp_timezone());
+
+      $post_date      = $dt_local->format('Y-m-d H:i:s'); // Sydney
+      $post_date_gmt  = $dt_utc->format('Y-m-d H:i:s');   // UTC
+
       $post_data = array(
-        'post_title'   => $home . ' vs ' . $away,
-        'post_date'    => $game['dateTime'],
-        'post_status'  => 'publish',
-        'post_author'  => get_current_user_id(),
-        'post_type'    => 'sp_event'
+        'post_title'    => $home . ' vs ' . $away,
+        'post_date'     => $post_date,
+        'post_date_gmt' => $post_date_gmt,
+        'post_status'   => 'publish',
+        'post_author'   => get_current_user_id(),
+        'post_type'     => 'sp_event'
       );
 
       if ($is_create) {
