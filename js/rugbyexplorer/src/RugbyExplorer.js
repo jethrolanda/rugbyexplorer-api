@@ -17,11 +17,14 @@ import {
   Col
 } from "antd";
 import ImportActions from "./ImportActions";
+import TeamTable from "./TeamTable";
+import AddTeam from "./AddTeam";
 
 const App = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [entityOptions, setEntityOptions] = useState([]);
+  const [clubTeams, setClubTeams] = useState([]);
 
   const [api, contextHolder] = notification.useNotification();
   const openNotificationWithIcon = (type) => {
@@ -73,6 +76,10 @@ const App = () => {
     setEntityOptions(
       rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
     );
+    setClubTeams(
+      rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams
+    );
+    console.log(rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams);
   }, []);
 
   return (
@@ -99,7 +106,7 @@ const App = () => {
             onFinish={onFinish}
           >
             {contextHolder}
-            <Card size="small" title="General" style={{ marginBottom: "16px" }}>
+            <Card size="small" title="General" style={{ marginBottom: "40px" }}>
               {/* <Form.Item
                 label="SportsPress API Username"
                 name="sportspress_field_api_username"
@@ -186,6 +193,17 @@ const App = () => {
                   )}
                 </Form.List>
               </Form.Item>
+              <Form.Item
+                style={{
+                  marginTop: "16px",
+                  justifyContent: "flex-end",
+                  display: "flex"
+                }}
+              >
+                <Button type="primary" htmlType="submit" loading={loading}>
+                  Save
+                </Button>
+              </Form.Item>
             </Card>
 
             {/* <Form.Item> */}
@@ -195,7 +213,8 @@ const App = () => {
                   style={{
                     display: "flex",
                     rowGap: 16,
-                    flexDirection: "column"
+                    flexDirection: "column",
+                    display: "none"
                   }}
                 >
                   {fields.map((field) => (
@@ -306,12 +325,14 @@ const App = () => {
                 </Typography>
               )}
             </Form.Item>
-            <Form.Item style={{ marginTop: "16px" }}>
+            <Form.Item style={{ marginTop: "16px", display: "none" }}>
               <Button type="primary" htmlType="submit" loading={loading}>
                 Submit
               </Button>
             </Form.Item>
           </Form>
+          <AddTeam params={rugbyexplorer_params} setClubTeams={setClubTeams} />
+          <TeamTable data={clubTeams} setClubTeams={setClubTeams} />
         </Col>
 
         <Col xs={24} md={10}>

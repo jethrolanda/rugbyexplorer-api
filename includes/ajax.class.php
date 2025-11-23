@@ -35,6 +35,12 @@ class Ajax
 
     // Delete events via ajax 
     add_action("wp_ajax_delete_events", array($this, 'delete_events'));
+
+    // Create Team via ajax 
+    add_action("wp_ajax_create_team", array($this, 'create_team'));
+
+    // Delete Team via ajax 
+    add_action("wp_ajax_delete_team", array($this, 'delete_team'));
   }
 
   /**
@@ -147,6 +153,85 @@ class Ajax
       wp_send_json(array(
         'status' => 'success',
         'data' => array(),
+      ));
+    } catch (\Exception $e) {
+
+      wp_send_json(array(
+        'status' => 'error',
+        'message' => $e->getMessage()
+      ));
+    }
+  }
+
+  public function create_team()
+  {
+
+    if (!defined('DOING_AJAX') || !DOING_AJAX) {
+      wp_die();
+    }
+
+    if (!is_user_logged_in()) {
+      wp_die();
+    }
+
+    try {
+
+      $data = json_decode(stripslashes($_POST['data']), true);
+      $options = get_option('rugbyexplorer_options');
+
+      error_log(print_r($data, true));
+      error_log(print_r($options, true));
+      $options['rugbyexplorer_field_club_teams'][] = $data;
+
+      update_option('rugbyexplorer_options', $options);
+
+      wp_send_json(array(
+        'status' => 'success',
+        'data' => $options,
+      ));
+    } catch (\Exception $e) {
+
+      wp_send_json(array(
+        'status' => 'error',
+        'message' => $e->getMessage()
+      ));
+    }
+  }
+
+  public function delete_team()
+  {
+
+    if (!defined('DOING_AJAX') || !DOING_AJAX) {
+      wp_die();
+    }
+
+    if (!is_user_logged_in()) {
+      wp_die();
+    }
+
+    try {
+
+      $data = json_decode(stripslashes($_POST['data']), true);
+      $options = get_option('rugbyexplorer_options');
+
+      $foundIndex = false;
+      foreach ($options['rugbyexplorer_field_club_teams'] as $key => $team) {
+        if ($team === $data) {
+          $foundIndex = $key;
+          break;
+        }
+      }
+
+      if ($foundIndex !== false) {
+        unset($options['rugbyexplorer_field_club_teams'][$foundIndex]);
+        // Reindex the array to maintain sequential keys
+        $options['rugbyexplorer_field_club_teams'] = array_values($options['rugbyexplorer_field_club_teams']);
+        update_option('rugbyexplorer_options', $options);
+      }
+
+      wp_send_json(array(
+        'status' => 'success',
+        'data' => $options,
       ));
     } catch (\Exception $e) {
 

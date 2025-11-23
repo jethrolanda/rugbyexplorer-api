@@ -649,12 +649,6 @@ class Sportspress
             );
           }
         }
-        if ($event_id == '65119') {
-          error_log(print_r('---', true));
-          error_log(print_r($matches, true));
-          error_log(print_r($player_id, true));
-          error_log(print_r('---', true));
-        }
 
         if (!empty($matches) && $player_id) {
           if ($pg['isHome']) {
