@@ -4,8 +4,8 @@
  * Plugin Name: RugbyExplorer API
  * Description: RugbyExplorer API
  * Version: 1.0
- * Author: Jethrolanda
- * Author URI: jethrolanda.com
+ * Author: focosme
+ * Author URI: https://focosme.com/
  * Text Domain: rugbyexplorer-api
  * Domain Path: /languages/
  * Requires at least: 5.7
