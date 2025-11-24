@@ -77,9 +77,8 @@ const App = () => {
       rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
     );
     setClubTeams(
-      rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams
+      rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? []
     );
-    console.log(rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams);
   }, []);
 
   return (

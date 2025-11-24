@@ -59,22 +59,9 @@ const AddTeam = ({ setClubTeams }) => {
 
   useEffect(() => {
     form.setFieldsValue({
-      sportspress_field_api_username:
-        rugbyexplorer_params?.settings?.sportspress_field_api_username ?? "",
-      sportspress_field_api_password:
-        rugbyexplorer_params?.settings?.sportspress_field_api_password ?? "",
-      rugbyexplorer_field_schedule_update:
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_schedule_update ??
-        "daily",
       rugbyexplorer_field_club_teams:
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? [],
-      rugbyexplorer_field_entity_options:
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
+        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? []
     });
-
-    setEntityOptions(
-      rugbyexplorer_params?.settings?.rugbyexplorer_field_entity_options ?? []
-    );
   }, []);
   return (
     <>
