@@ -40,6 +40,7 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
     setLoading(false);
 
     if (status === "success") {
+      form.resetFields();
       setIsModalOpen(false);
       setClubTeams(data?.rugbyexplorer_field_club_teams);
       openNotificationWithIcon(
