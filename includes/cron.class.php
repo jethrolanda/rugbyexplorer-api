@@ -67,22 +67,27 @@ class Cron
         if ($year != $team['season']) continue;
 
         // Upcoming Fixtures
-        $rea->api->getData(array(
+        $args1 = array(
           'season' => $team['season'],
           'competition' => $team['competition_id'],
           'team' => $team['team_id'],
           'entityId' => (int) $team['entity_id'],
           'type' =>  'fixtures'
-        ));
+        );
+        $res1 = $rea->api->getData($args1);
+        $rea->sportspress->createEvents($res1, $args1);
 
         // Recent Results
-        $rea->api->getData(array(
+        $args2 = array(
           'season' => $team['season'],
           'competition' => $team['competition_id'],
           'team' => $team['team_id'],
           'entityId' => (int) $team['entity_id'],
           'type' =>  'results'
-        ));
+        );
+        $rea->api->getData($args2);
+        $res2 = $rea->api->getData($args2);
+        $rea->sportspress->createEvents($res2, $args2);
       }
     } catch (\Exception $e) {
       error_log('Cron Error: ' . $e->getMessage());
