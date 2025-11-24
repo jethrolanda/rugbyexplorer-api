@@ -34,7 +34,7 @@ $defaults = array(
   'paginated'             => get_option('sportspress_list_paginated', 'yes') == 'yes' ? true : false,
   'rows'                  => get_option('sportspress_list_rows', 10),
   'leagues'               => null,
-  'seasons'               => null,
+  'seasons'               => $season,
   'team'                  => get_the_ID(),
 );
 

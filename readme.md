@@ -37,6 +37,15 @@ Creates: Events, Venue, Teams, Leagues, Seasons, Venues, Teams, Players, Staffs,
 - To find the entity_id, visit the entity url page (Example: https://xplorer.rugby/jruc) then page source then find “entityId” there you will find the id.
 - To find competition_id, season and team_id just grab it from the rugbyexplorer url. Example: https://xplorer.rugby/jruc/fixtures-results?team=DZJhdynaY4wSDBQpQ&comp=mLGoqgHnacX2AnmgD&season=2025&tab=Results
 
+[top_scorer playerlist_id="57268" season="2024"]
+
+- I am copying the playerlist shortcode template (player-list.php) so that I can override the team id based on the current team page.
+- Requires playerlist_id to work properly.
+- Season attribute is optional. If no season then it will rely on the playerlist season setting.
+- Goto https://staging.focosme.com/wp-admin/edit.php?post_type=sp_list and create a top scorer for Try and Conversion. Just leave the team blank.
+- It will use the settings from the player list post id
+- If adde in the team template, this shortcode will just automatically detect the current team page id and autofilter the players based on the current team page.
+
 ---
 
 ## Blocks

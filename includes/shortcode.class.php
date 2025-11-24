@@ -598,9 +598,11 @@ class Shortcode
   {
     $atts = shortcode_atts(array(
       'playerlist_id' => 0,
-    ), $atts, 'points_summary');
+      'season' => null,
+    ), $atts, 'top_scorer');
 
     $id = $atts['playerlist_id'];
+    $season = $atts['season'];
     ob_start();
 
     if ($id) {
