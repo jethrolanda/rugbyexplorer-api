@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { Button, Modal, Flex, Form, Input, Select, notification } from "antd";
 import { TeamOutlined } from "@ant-design/icons";
 
-const AddTeam = ({ setClubTeams }) => {
+const AddTeam = ({ setClubTeams, entityOptions }) => {
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [entityOptions, setEntityOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [api, contextHolder] = notification.useNotification();
   const openNotificationWithIcon = (type, title, description) => {

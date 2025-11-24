@@ -330,7 +330,11 @@ const App = () => {
               </Button>
             </Form.Item>
           </Form>
-          <AddTeam params={rugbyexplorer_params} setClubTeams={setClubTeams} />
+          <AddTeam
+            params={rugbyexplorer_params}
+            setClubTeams={setClubTeams}
+            entityOptions={entityOptions}
+          />
           <TeamTable data={clubTeams} setClubTeams={setClubTeams} />
         </Col>
 
