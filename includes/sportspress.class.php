@@ -60,6 +60,11 @@ class Sportspress
 
     foreach ($games as $game) {
 
+      // Skip bye games
+      if ($game['isBye']) {
+        continue;
+      }
+
       // Skip if game is already added by checking fixture_id
       $fixture_id = $this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']);
       $is_create = $fixture_id === false ? true : false;
