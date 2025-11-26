@@ -29,7 +29,7 @@ class Cron
 
     // Action Scheduler hook
     add_action('rugbyexplorer_scheduled_events_update', array($this, 'rugbyexplorer_scheduled_events_update'));
-    add_action('update_club_events', array($this, 'update_club_events'));
+    add_action('rugbyexplorer_update_club_events', array($this, 'rugbyexplorer_update_club_events'));
   }
 
   /**
@@ -122,7 +122,7 @@ class Cron
       foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
         // Skip if not current season. Year today
         if ($year == $team['season']) {
-          as_enqueue_async_action('update_club_events', $team);
+          as_enqueue_async_action('rugbyexplorer_update_club_events', array($team));
         }
       }
     } catch (\Exception $e) {
@@ -130,10 +130,9 @@ class Cron
     }
   }
 
-  public function update_club_events($team)
+  public function rugbyexplorer_update_club_events($team)
   {
     try {
-
       global $rea;
       // Upcoming Fixtures
       $args1 = array(

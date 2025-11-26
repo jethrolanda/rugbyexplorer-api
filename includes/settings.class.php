@@ -387,6 +387,8 @@ class Settings
 
       // Add new schedule
       wp_schedule_event(time(), $new['rugbyexplorer_field_schedule_update'], 'rugbyexplorer_schedule_update');
+
+      $this->update_schedule_action_scheduler($new['rugbyexplorer_field_schedule_update']);
     }
   }
 
@@ -400,6 +402,33 @@ class Settings
       }
       $frequency = $new['rugbyexplorer_field_schedule_update'];
       wp_schedule_event(time(), $frequency, $hook);
+
+      $this->update_schedule_action_scheduler($frequency);
     }
+  }
+
+  public function update_schedule_action_scheduler($frequency)
+  {
+    // Remove all existing scheduled actions
+    \as_unschedule_all_actions('rugbyexplorer_scheduled_events_update');
+
+    $interval = DAY_IN_SECONDS;
+    switch ($frequency) {
+      case 'weekly':
+        $interval = WEEK_IN_SECONDS;
+        break;
+      case 'every_fifteen_minutes':
+        $interval = 15 * MINUTE_IN_SECONDS;
+        break;
+      default:
+        $interval = DAY_IN_SECONDS;
+    }
+
+    // New scheduled action
+    as_schedule_recurring_action(
+      time(),
+      $interval,
+      'rugbyexplorer_scheduled_events_update',
+    );
   }
 }
