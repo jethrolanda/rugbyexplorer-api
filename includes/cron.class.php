@@ -27,6 +27,9 @@ class Cron
 
     // add_filter('sportspress_list_data_event_args', array($this, 'sportspress_list_data_event_args'), 10);
 
+    // Action Scheduler hook
+    add_action('rugbyexplorer_scheduled_events_update', array($this, 'rugbyexplorer_scheduled_events_update'));
+    add_action('update_club_events', array($this, 'update_club_events'));
   }
 
   /**
@@ -107,5 +110,57 @@ class Cron
 
 
     return $args;
+  }
+
+  public function rugbyexplorer_scheduled_events_update()
+  {
+    try {
+
+      $year = date('Y');
+      $options = get_option('rugbyexplorer_options');
+
+      foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
+        // Skip if not current season. Year today
+        if ($year == $team['season']) {
+          as_enqueue_async_action('update_club_events', $team);
+        }
+      }
+    } catch (\Exception $e) {
+      error_log('Action Scheduler Error: ' . $e->getMessage());
+    }
+  }
+
+  public function update_club_events($team)
+  {
+    try {
+
+      global $rea;
+      // Upcoming Fixtures
+      $args1 = array(
+        'season' => $team['season'],
+        'competition' => $team['competition_id'],
+        'team' => $team['team_id'],
+        'entityId' => (int) $team['entity_id'],
+        'type' =>  'fixtures'
+      );
+
+      $res1 = $rea->api->getData($args1);
+      $rea->sportspress->createEvents($res1, $args1);
+
+      // Recent Results
+      $args2 = array(
+        'season' => $team['season'],
+        'competition' => $team['competition_id'],
+        'team' => $team['team_id'],
+        'entityId' => (int) $team['entity_id'],
+        'type' =>  'results'
+      );
+
+      $rea->api->getData($args2);
+      $res2 = $rea->api->getData($args2);
+      $rea->sportspress->createEvents($res2, $args2);
+    } catch (\Exception $e) {
+      error_log('Update Club Events Error: ' . $e->getMessage());
+    }
   }
 }

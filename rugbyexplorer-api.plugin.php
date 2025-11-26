@@ -89,6 +89,13 @@ class RugbyExplorer_API
 		if (!wp_next_scheduled('rugbyexplorer_schedule_update')) {
 			wp_schedule_event(time(), 'daily', 'rugbyexplorer_schedule_update');
 		}
+
+		if (class_exists('ActionScheduler')) {
+			// Avoid scheduling duplicate recurring action
+			if (!as_next_scheduled_action('rugbyexplorer_scheduled_events_update')) {
+				as_schedule_recurring_action(time(), DAY_IN_SECONDS, 'rugbyexplorer_scheduled_events_update');
+			}
+		}
 	}
 
 	/**
