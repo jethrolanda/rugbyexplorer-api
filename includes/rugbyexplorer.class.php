@@ -95,6 +95,15 @@ class RugbyExplorer
         if (!empty($res2)) {
           $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
         }
+
+        // Save team ladder to
+        $competition_data = $rea->api->getCompetitionLadderData(array(
+          'competition_id' => $competition_id
+        ));
+        $term_id = $rea->sportspress->getTermLeagueIdByName($competition_id);
+        if (!empty($competition_data) && $term_id) {
+          update_term_meta($term_id, 'ladder_data', $competition_data);
+        }
       }
 
       // End the timer

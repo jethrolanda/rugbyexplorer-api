@@ -148,7 +148,7 @@ class Sportspress
         sleep(1); // Add 1 sec delay to avoid hitting API rate limits
         // GraphQL Request Error: cURL error 28: Failed to connect to rugby-au-cms.graphcdn.app port 443 after 10001 ms: Timeout was reached
         // GraphQL Error: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
-        $fixture_data = $rea->shortcode->getPlayerLineUpData(array('fixture_id' => $game['id']));
+        $fixture_data = $rea->api->getMatchDetails(array('fixture_id' => $game['id']));
         $substitutes = $fixture_data['allMatchStatsSummary']['lineUp']['substitutes'];
         $substitutes = is_array($substitutes) ? $substitutes : array();
         $players = $fixture_data['allMatchStatsSummary']['lineUp']['players'];
@@ -177,6 +177,9 @@ class Sportspress
 
         // Assign Players to teams
         $this->assignPlayers($post_id, $players, $fixture_data);
+
+        // Insert player lineup data into postmeta
+        update_post_meta($post_id, 'rugby_explorer_match_details_data', $fixture_data);
       }
     }
 
