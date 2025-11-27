@@ -86,9 +86,6 @@ class RugbyExplorer_API
 	 */
 	public function activate()
 	{
-		if (!wp_next_scheduled('rugbyexplorer_schedule_update')) {
-			wp_schedule_event(time(), 'daily', 'rugbyexplorer_schedule_update');
-		}
 
 		if (class_exists('ActionScheduler')) {
 			// Avoid scheduling duplicate recurring action
