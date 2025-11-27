@@ -76,29 +76,50 @@ class Cron
   {
     try {
       global $rea;
-      // Upcoming Fixtures
-      $args1 = array(
-        'season' => $team['season'],
-        'competition' => $team['competition_id'],
-        'team' => $team['team_id'],
-        'entityId' => (int) $team['entity_id'],
-        'type' =>  'fixtures'
-      );
+      $competition_id = $team['competition_id'] ?? '';
+      $team_id        = $team['team_id'] ?? '';
+      $season         = $team['season'] ?? '';
+      $entity_id      = $team['entity_id'] ?? '';
+      $status = array();
 
-      $res1 = $rea->api->getData($args1);
-      $rea->sportspress->createEvents($res1, $args1);
+      if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
+        // Upcoming Fixtures
+        $args1 = array(
+          'season' => $season,
+          'competition' => $competition_id,
+          'team' => $team_id,
+          'entityId' => (int) $entity_id,
+          'type' =>  'fixtures'
+        );
 
-      // Recent Results
-      $args2 = array(
-        'season' => $team['season'],
-        'competition' => $team['competition_id'],
-        'team' => $team['team_id'],
-        'entityId' => (int) $team['entity_id'],
-        'type' =>  'results'
-      );
+        $res1 = $rea->api->getData($args1);
+        if (!empty($res1)) {
+          $rea->sportspress->createEvents($res1, $args1);
+        }
 
-      $res2 = $rea->api->getData($args2);
-      $rea->sportspress->createEvents($res2, $args2);
+        // Recent Results
+        $args2 = array(
+          'season' => $season,
+          'competition' => $competition_id,
+          'team' => $team_id,
+          'entityId' => (int) $entity_id,
+          'type' =>  'results'
+        );
+
+        $res2 = $rea->api->getData($args2);
+        if (!empty($res2)) {
+          $rea->sportspress->createEvents($res2, $args2);
+        }
+
+        // Save team ladder
+        $competition_data = $rea->api->getCompetitionLadderData(array(
+          'competition_id' => $competition_id
+        ));
+        $term_id = $rea->sportspress->getTermLeagueIdByName($competition_id);
+        if (!empty($competition_data) && $term_id) {
+          update_term_meta($term_id, 'ladder_data', $competition_data);
+        }
+      }
     } catch (\Exception $e) {
       error_log('Update Club Events Error: ' . $e->getMessage());
     }

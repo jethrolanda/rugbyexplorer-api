@@ -96,7 +96,7 @@ class RugbyExplorer
           $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
         }
 
-        // Save team ladder to
+        // Save team ladder
         $competition_data = $rea->api->getCompetitionLadderData(array(
           'competition_id' => $competition_id
         ));
