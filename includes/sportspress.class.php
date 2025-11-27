@@ -961,6 +961,7 @@ class Sportspress
   {
     $sp_player_ids = get_posts(array(
       'post_type'      => $post_type,
+      'post_status'    => 'any',
       'fields'         => 'ids',
       'posts_per_page' => -1,
       'meta_query'     => array(
@@ -971,6 +972,23 @@ class Sportspress
         )
       ),
     ));
+    error_log('getPostIdByMetaValue: ');
+    error_log(print_r($post_type, true));
+    error_log(print_r($meta_key, true));
+    error_log(print_r($meta_value, true));
+    error_log(print_r($sp_player_ids, true));
+    error_log(print_r(array(
+      'post_type'      => $post_type,
+      'fields'         => 'ids',
+      'posts_per_page' => -1,
+      'meta_query'     => array(
+        array(
+          'key'     => $meta_key,
+          'compare' => '=',
+          'value' => $meta_value
+        )
+      ),
+    ), true));
 
     return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
   }
