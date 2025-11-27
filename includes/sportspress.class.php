@@ -107,12 +107,12 @@ class Sportspress
         'post_type'     => 'sp_event'
       );
 
-      if ($is_create) {
-        $post_id = wp_insert_post($post_data);
-      } else {
-        $post_data['ID'] = $fixture_id;
-        $post_id = wp_update_post($post_data);
+      if (!$is_create) {
+        $post_data['ID'] = $fixture_id; // Provide post id for update
       }
+
+      // Handles create and update
+      $post_id = wp_insert_post($post_data);
 
       if (is_wp_error($post_id)) {
         $status['failed']++;
