@@ -155,7 +155,6 @@ class Cron
         'type' =>  'results'
       );
 
-      $rea->api->getData($args2);
       $res2 = $rea->api->getData($args2);
       $rea->sportspress->createEvents($res2, $args2);
     } catch (\Exception $e) {
