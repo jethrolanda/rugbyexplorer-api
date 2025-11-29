@@ -135,7 +135,7 @@ class Sportspress
         $post_id = wp_insert_post($post_data);
         if (is_wp_error($post_id)) {
           $status['failed']++;
-          error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
+          error_log('SportsPress Event Creation Failed: ' . $post_id->get_error_message());
           continue;
         }
       }
