@@ -42,7 +42,7 @@ class Sportspress
 
   public function createEvents($games, $args)
   {
-    global $rea;
+    global $rea, $wpdb;
     // args example
     // $args = array(
     //   'season' => '2025',
@@ -140,9 +140,6 @@ class Sportspress
         }
       }
 
-      // Handles create and update
-      $post_id = wp_insert_post($post_data);
-
       if ($post_id > 0) {
         if ($fixture_id == false) {
           $status['created']++;
@@ -222,14 +219,15 @@ class Sportspress
       $team_id_api = isset($team['teamId']) ? $team['teamId'] : "";
 
       // Skip creating team
-      if ($team_id_api == 0 || empty($team_name)) {
-        $team_ids[] = $this->createByeTeam();
-        continue;
-      }
+      // if ($team_id_api == 0 || empty($team_name)) {
+      //   $team_ids[] = $this->createByeTeam();
+      //   continue;
+      // }
 
       // Check if team exist
       $team_id = $this->getPostIdByMetaValue('sp_team', 'team_id', $team_id_api);
 
+      // Skip creating team
       if ($team_id > 0) {
         $team_ids[] = $team_id;
         continue;
