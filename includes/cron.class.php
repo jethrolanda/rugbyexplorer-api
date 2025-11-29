@@ -64,7 +64,7 @@ class Cron
       foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
         // Skip if not current season. Year today
         if ($year == $team['season']) {
-          as_enqueue_async_action('rugbyexplorer_update_club_events', array("team" => $team));
+          as_enqueue_async_action('rugbyexplorer_update_club_events', array($team));
         }
       }
     } catch (\Exception $e) {
@@ -76,7 +76,7 @@ class Cron
   {
     try {
       global $rea;
-      $team           = $team['team'];
+
       $competition_id = $team['competition_id'] ?? '';
       $team_id        = $team['team_id'] ?? '';
       $season         = $team['season'] ?? '';

@@ -67,7 +67,6 @@ class Sportspress
 
       // Skip if game is already added by checking fixture_id
       $fixture_id = $this->getPostIdByMetaValue('sp_event', 'fixture_id', $game['id']);
-      $is_create = $fixture_id === false ? true : false;
 
       // if no league id found then create one
       if ($sportspressLeagueId == false) {
@@ -102,23 +101,50 @@ class Sportspress
         'post_title'    => $home . ' vs ' . $away,
         'post_date'     => $post_date,
         'post_date_gmt' => $post_date_gmt,
-        'post_status'   => 'publish',
-        'post_author'   => get_current_user_id(),
+        'post_status'   => $game['status'] == 'Fixture' ? 'future' : 'publish', // Fixture or Result
+        // 'post_author'   => get_current_user_id(),
         'post_type'     => 'sp_event'
       );
 
-      if (!$is_create) {
-        $post_data['ID'] = $fixture_id; // Provide post id for update
+      $data_formats = array(
+        '%s', // post_title
+        '%s', // post_data
+        '%s', // post_date_gmt
+        '%s', // post_status
+        '%s'  // post_type
+      );
+
+      $post_id = 0;
+      if ($fixture_id > 0) {
+        // Handles update
+        $update = $wpdb->update(
+          $wpdb->posts,
+          $post_data,
+          array('ID' => $fixture_id),
+          $data_formats,
+          array('%d') // Format for WHERE value (integer)
+        );
+        if ($update === false) {
+          $status['failed']++;
+          error_log('SportsPress Event Update Failed: ' . $fixture_id);
+          continue;
+        }
+        $post_id = $fixture_id;
+      } else {
+        // Handles create
+        $post_id = wp_insert_post($post_data);
+        if (is_wp_error($post_id)) {
+          $status['failed']++;
+          error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
+          continue;
+        }
       }
 
       // Handles create and update
       $post_id = wp_insert_post($post_data);
 
-      if (is_wp_error($post_id)) {
-        $status['failed']++;
-        error_log('SportsPress Event Creation Failed: ' . $response->get_error_message());
-      } else {
-        if ($is_create) {
+      if ($post_id > 0) {
+        if ($fixture_id == false) {
           $status['created']++;
         } else {
           $status['updated']++;
