@@ -81,7 +81,6 @@ class Cron
       $team_id        = $team['team_id'] ?? '';
       $season         = $team['season'] ?? '';
       $entity_id      = $team['entity_id'] ?? '';
-      $status = array();
 
       if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
         // Upcoming Fixtures
