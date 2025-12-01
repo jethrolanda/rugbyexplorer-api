@@ -600,7 +600,7 @@ class Sportspress
             $scores[$team_ids[0]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
+              't' => $scores[$team_ids[0]][$player_id]['t'] ?? 0,
               'c' => 0,
               'p' => 0,
               'dg' => 0,
@@ -611,7 +611,7 @@ class Sportspress
             $scores[$team_ids[1]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
+              't' => $scores[$team_ids[1]][$player_id]['t'] ?? 0,
               'c' => 0,
               'p' => 0,
               'dg' => 0,
@@ -661,8 +661,8 @@ class Sportspress
             $scores[$team_ids[0]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
+              't' => $scores[$team_ids[0]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[0]][$player_id]['c'] ?? 0,
               'p' => 0,
               'dg' => 0,
               'status' => 'lineup',
@@ -672,8 +672,8 @@ class Sportspress
             $scores[$team_ids[1]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
+              't' => $scores[$team_ids[1]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[1]][$player_id]['c'] ?? 0,
               'p' => 0,
               'dg' => 0,
               'status' => 'lineup',
@@ -722,9 +722,9 @@ class Sportspress
             $scores[$team_ids[0]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
-              'p' => 0,
+              't' => $scores[$team_ids[0]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[0]][$player_id]['c'] ?? 0,
+              'p' => $scores[$team_ids[0]][$player_id]['p'] ?? 0,
               'dg' => 0,
               'status' => 'lineup',
               'sub' => '0'
@@ -733,9 +733,9 @@ class Sportspress
             $scores[$team_ids[1]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
-              'p' => 0,
+              't' => $scores[$team_ids[1]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[1]][$player_id]['c'] ?? 0,
+              'p' => $scores[$team_ids[1]][$player_id]['p'] ?? 0,
               'dg' => 0,
               'status' => 'lineup',
               'sub' => '0'
@@ -783,10 +783,10 @@ class Sportspress
             $scores[$team_ids[0]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
-              'p' => 0,
-              'dg' => 0,
+              't' => $scores[$team_ids[0]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[0]][$player_id]['c'] ?? 0,
+              'p' => $scores[$team_ids[0]][$player_id]['p'] ?? 0,
+              'dg' => $scores[$team_ids[0]][$player_id]['dg'] ?? 0,
               'status' => 'lineup',
               'sub' => '0'
             );
@@ -794,10 +794,10 @@ class Sportspress
             $scores[$team_ids[1]][$player_id] = array(
               'number' => 0,
               'position' => array(0),
-              't' => 0,
-              'c' => 0,
-              'p' => 0,
-              'dg' => 0,
+              't' => $scores[$team_ids[1]][$player_id]['t'] ?? 0,
+              'c' => $scores[$team_ids[1]][$player_id]['c'] ?? 0,
+              'p' => $scores[$team_ids[1]][$player_id]['p'] ?? 0,
+              'dg' => $scores[$team_ids[1]][$player_id]['dg'] ?? 0,
               'status' => 'lineup',
               'sub' => '0'
             );
