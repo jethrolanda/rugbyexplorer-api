@@ -28,6 +28,7 @@ class Shortcode
 
     add_shortcode('top_scorer', array($this, 'top_scorer'));
     add_shortcode('player_games_played', array($this, 'player_games_played'));
+    add_shortcode('player_matches_history', array($this, 'player_matches_history'));
   }
 
   /**
@@ -312,12 +313,12 @@ class Shortcode
     ), $atts, 'player_games_played');
 
     $player_id = esc_attr($atts['player_id']);
-    $games_played = $this->get_player_games_played($player_id);
+    $games_played = count($this->get_player_games_played($player_id));
     ob_start();
 
-    if ($player_id) {
+    if ($player_id && $games_played) {
       echo "<div class='sportspress'>";
-      require(REA_VIEWS_ROOT_DIR . 'player-games-played.php');
+      echo $games_played;
       echo "</div>";
     }
 
@@ -325,31 +326,64 @@ class Shortcode
     return ob_get_clean();
   }
 
-  public function get_player_games_played($player_id)
+  public function get_player_games_played($player_id, $year = null)
   {
     global $wpdb;
 
     $player_id = intval($player_id);
     $player_code = get_post_meta($player_id, 'player_id', true);
 
+    $where_year = '';
+    $params = [
+      'sp_event',
+      'rugby_explorer_match_details_data',
+      '%' . $player_code . '%'
+    ];
+
+    // Add optional year condition
+    if (!empty($year) && is_numeric($year)) {
+      $where_year = " AND YEAR(p.post_date) = %d";
+      $params[] = (int) $year;
+    }
+
+    $sql = "
+    SELECT p.ID
+    FROM {$wpdb->posts} p
+    INNER JOIN {$wpdb->postmeta} pm
+        ON p.ID = pm.post_id
+    WHERE p.post_type = %s
+      AND p.post_status != 'trash'
+      AND pm.meta_key = %s
+      AND pm.meta_value LIKE %s
+      $where_year
+";
+
     $sp_player_ids = $wpdb->get_col(
-      $wpdb->prepare(
-        "
-        SELECT p.ID
-        FROM {$wpdb->posts} p
-        INNER JOIN {$wpdb->postmeta} pm
-            ON p.ID = pm.post_id
-        WHERE p.post_type = %s
-          AND p.post_status != 'trash'
-          AND pm.meta_key = %s
-          AND pm.meta_value LIKE %s
-        ",
-        'sp_event',
-        'rugby_explorer_match_details_data',
-        '%' . $player_code . '%'
-      )
+      $wpdb->prepare($sql, $params)
     );
 
-    return count($sp_player_ids);
+    return $sp_player_ids;
+  }
+
+  public function player_matches_history($atts)
+  {
+    $atts = shortcode_atts(array(
+      'player_id' => get_the_ID(),
+      'season' => null,
+    ), $atts, 'player_matches_history');
+
+    $player_id = esc_attr($atts['player_id']);
+    $season = esc_attr($atts['season']);
+    $games_played = $this->get_player_games_played($player_id, $season);
+    ob_start();
+
+    if ($player_id) {
+      echo "<div class='sportspress'>";
+      require(REA_VIEWS_ROOT_DIR . 'player-matches-played.php');
+      echo "</div>";
+    }
+
+
+    return ob_get_clean();
   }
 }
