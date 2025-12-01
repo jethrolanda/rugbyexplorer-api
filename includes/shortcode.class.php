@@ -98,7 +98,9 @@ class Shortcode
     }
 
     // $data = get_term_meta($term_id, 'ladder_data', true);
-    $data = $rea->sportspress->getLeagueLadderData($competition_id);
+    $data = $rea->api->getCompetitionLadderData(array(
+      'competition_id' => $competition_id
+    ));
 
     if (!empty($data['ladderPools'])) {
       require(REA_VIEWS_ROOT_DIR . 'team-ladder-view.php');
