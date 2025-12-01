@@ -27,6 +27,7 @@ class Shortcode
     add_shortcode('points_summary', array($this, 'points_summary'));
 
     add_shortcode('top_scorer', array($this, 'top_scorer'));
+    add_shortcode('player_games_played', array($this, 'player_games_played'));
   }
 
   /**
@@ -302,5 +303,53 @@ class Shortcode
     }
 
     return ob_get_clean();
+  }
+
+  public function player_games_played($atts)
+  {
+    $atts = shortcode_atts(array(
+      'player_id' => get_the_ID(),
+    ), $atts, 'player_games_played');
+
+    $player_id = esc_attr($atts['player_id']);
+    $games_played = $this->get_player_games_played($player_id);
+    ob_start();
+
+    if ($player_id) {
+      echo "<div class='sportspress'>";
+      require(REA_VIEWS_ROOT_DIR . 'player-games-played.php');
+      echo "</div>";
+    }
+
+
+    return ob_get_clean();
+  }
+
+  public function get_player_games_played($player_id)
+  {
+    global $wpdb;
+
+    $player_id = intval($player_id);
+    $player_code = get_post_meta($player_id, 'player_id', true);
+
+    $sp_player_ids = $wpdb->get_col(
+      $wpdb->prepare(
+        "
+        SELECT p.ID
+        FROM {$wpdb->posts} p
+        INNER JOIN {$wpdb->postmeta} pm
+            ON p.ID = pm.post_id
+        WHERE p.post_type = %s
+          AND p.post_status != 'trash'
+          AND pm.meta_key = %s
+          AND pm.meta_value LIKE %s
+        ",
+        'sp_event',
+        'rugby_explorer_match_details_data',
+        '%' . $player_code . '%'
+      )
+    );
+
+    return count($sp_player_ids);
   }
 }
