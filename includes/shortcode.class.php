@@ -442,7 +442,7 @@ class Shortcode
         'total_drop_goals' => $total_drop_goals,
       );
     }
-    error_log(print_r($league_stats, true));
+
     ob_start();
 
     if ($player_id) {
@@ -508,7 +508,7 @@ class Shortcode
       if (isset($score[$player_id])) {
         $data['try'] += isset($score[$player_id]['t']) ? intval($score[$player_id]['t']) : 0;
         $data['conversions'] += isset($score[$player_id]['c']) ? intval($score[$player_id]['c']) : 0;
-        $data['penalty_kicks'] += isset($score[$player_id]['t']['p']) ? intval($score[$player_id]['t']['p']) : 0;
+        $data['penalty_kicks'] += isset($score[$player_id]['p']) ? intval($score[$player_id]['p']) : 0;
         $data['drop_goals'] += isset($score[$player_id]['dg']) ? intval($score[$player_id]['dg']) : 0;
       }
     }
