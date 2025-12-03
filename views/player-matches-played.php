@@ -65,7 +65,7 @@ extract($defaults, EXTR_SKIP);
             $teams   = array_reverse($teams, true);
             $results = array_reverse($results, true);
           }
-          error_log(print_r($teams, true));
+
           if ($show_team_logo) :
             $j = 0;
             foreach ($teams as $team) :

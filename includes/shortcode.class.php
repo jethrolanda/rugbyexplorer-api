@@ -29,6 +29,7 @@ class Shortcode
     add_shortcode('top_scorer', array($this, 'top_scorer'));
     add_shortcode('player_games_played', array($this, 'player_games_played'));
     add_shortcode('player_matches_history', array($this, 'player_matches_history'));
+    add_shortcode('player_stats', array($this, 'player_stats'));
   }
 
   /**
@@ -388,5 +389,121 @@ class Shortcode
 
 
     return ob_get_clean();
+  }
+
+  public function player_stats($atts)
+  {
+    $atts = shortcode_atts(array(
+      'player_id' => get_the_ID(),
+      'season' => null,
+    ), $atts, 'player_stats');
+
+    $player_id = esc_attr($atts['player_id']);
+    $season = esc_attr($atts['season']);
+    $events = $this->get_player_games_played($player_id, $season);
+    $filtered_events = $this->get_player_event_filter_by_player_id($player_id, $events);
+    $data = array();
+
+    foreach ($filtered_events as $event_id) {
+      $terms = get_the_terms($event_id, 'sp_league');
+      $data[] = array(
+        'event_id' => $event_id,
+        'player_id' => $player_id,
+        'league_id' => !empty($terms) ? $terms[0]->term_id : 0,
+        'league_name' => !empty($terms) ? $terms[0]->name : '',
+        'scores' => $this->get_player_scores($event_id, $player_id)
+      );
+    }
+
+    // Sort by league data
+    $league_stats = array();
+    foreach ($data as $d) {
+      $total_matches = isset($league_stats[$d['league_id']]['total_matches']) ? $league_stats[$d['league_id']]['total_matches'] : 0;
+      $total_try = isset($league_stats[$d['league_id']]['total_try']) ? $league_stats[$d['league_id']]['total_try'] : 0;
+      $total_conversions = isset($league_stats[$d['league_id']]['total_conversions']) ? $league_stats[$d['league_id']]['total_conversions'] : 0;
+      $total_penalty_kicks = isset($league_stats[$d['league_id']]['total_penalty_kicks']) ? $league_stats[$d['league_id']]['total_penalty_kicks'] : 0;
+      $total_drop_goals = isset($league_stats[$d['league_id']]['total_drop_goals']) ? $league_stats[$d['league_id']]['total_drop_goals'] : 0;
+      $league_stats[$d['league_id']] = array(
+        'league_name' => $d['league_name'],
+        'total_matches' => $total_matches + 1,
+        'total_points' => $total_try * 5 + $total_conversions * 2 + $total_penalty_kicks * 3 + $total_drop_goals * 3,
+        'total_try' => $d['scores']['try'] + $total_try,
+        'total_conversions' => $d['scores']['conversions'] + $total_conversions,
+        'total_penalty_kicks' => $d['scores']['penalty_kicks'] + $total_penalty_kicks,
+        'total_drop_goals' => $d['scores']['drop_goals'] + $total_drop_goals,
+      );
+    }
+    error_log(print_r($league_stats, true));
+    ob_start();
+
+    if ($player_id) {
+      echo "<div class='sportspress'>";
+      require(REA_VIEWS_ROOT_DIR . 'player-statistics.php');
+      echo "</div>";
+    }
+
+
+    return ob_get_clean();
+  }
+
+  // find from the events played where the player scored points
+  public function get_player_event_filter_by_player_id($player_id, $events)
+  {
+    global $wpdb;
+
+    $player_id = intval($player_id);
+    $event_ids = array_map('intval', (array)$events); // sanitize 
+    // If event_ids empty → avoid invalid SQL
+    if (empty($event_ids)) {
+      return []; // or return early
+    }
+    $placeholders = implode(',', array_fill(0, count($event_ids), '%d'));
+
+    $params = array(
+      'sp_event',
+      'sp_players',
+      '%' . $player_id . '%'
+    );
+    $params = array_merge($params, $event_ids);
+
+    $sql = "
+    SELECT p.ID
+    FROM {$wpdb->posts} p
+    INNER JOIN {$wpdb->postmeta} pm
+        ON p.ID = pm.post_id
+    WHERE p.post_type = %s
+      AND p.post_status != 'trash'
+      AND pm.meta_key = %s
+      AND pm.meta_value LIKE %s
+       AND p.ID IN ($placeholders)
+";
+
+    $sp_player_ids = $wpdb->get_col(
+      $wpdb->prepare($sql, $params)
+    );
+
+    return $sp_player_ids;
+  }
+
+  public function get_player_scores($event_id, $player_id)
+  {
+    $scores = get_post_meta($event_id, 'sp_players', true);
+    $data = array(
+      'try' => 0, // t
+      'conversions' => 0, // c
+      'penalty_kicks' => 0, // p
+      'drop_goals' => 0, // dg
+    );
+
+    foreach ($scores as $score) {
+      if (isset($score[$player_id])) {
+        $data['try'] += isset($score[$player_id]['t']) ? intval($score[$player_id]['t']) : 0;
+        $data['conversions'] += isset($score[$player_id]['c']) ? intval($score[$player_id]['c']) : 0;
+        $data['penalty_kicks'] += isset($score[$player_id]['t']['p']) ? intval($score[$player_id]['t']['p']) : 0;
+        $data['drop_goals'] += isset($score[$player_id]['dg']) ? intval($score[$player_id]['dg']) : 0;
+      }
+    }
+
+    return $data;
   }
 }
