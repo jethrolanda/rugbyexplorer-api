@@ -75,7 +75,6 @@ class Ajax
     try {
 
       $data = json_decode(stripslashes($_POST['data']), true);
-      // error_log(print_r($data, true));
 
       // update_option('rugbyexplorer_field_api_username', $data['rugbyexplorer_field_api_username']);
       // update_option('rugbyexplorer_field_api_password', $data['rugbyexplorer_field_api_password']);
@@ -179,8 +178,6 @@ class Ajax
       $data = json_decode(stripslashes($_POST['data']), true);
       $options = get_option('rugbyexplorer_options');
 
-      error_log(print_r($data, true));
-      error_log(print_r($options, true));
       $options['rugbyexplorer_field_club_teams'][] = $data;
 
       update_option('rugbyexplorer_options', $options);

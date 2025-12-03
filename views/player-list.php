@@ -160,7 +160,7 @@ foreach ($groups as $group) :
   $thead .= '</tr>' . '</thead>';
 
   $tbody = '';
-  // error_log(print_r($data, true));
+
   foreach ($data as $player_id => $row) :
     if (empty($group->term_id) || has_term($group->term_id, 'sp_position', $player_id)) :
 
