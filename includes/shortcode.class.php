@@ -419,18 +419,27 @@ class Shortcode
     $league_stats = array();
     foreach ($data as $d) {
       $total_matches = isset($league_stats[$d['league_id']]['total_matches']) ? $league_stats[$d['league_id']]['total_matches'] : 0;
+
       $total_try = isset($league_stats[$d['league_id']]['total_try']) ? $league_stats[$d['league_id']]['total_try'] : 0;
+      $total_try = $d['scores']['try'] + $total_try;
+
       $total_conversions = isset($league_stats[$d['league_id']]['total_conversions']) ? $league_stats[$d['league_id']]['total_conversions'] : 0;
+      $total_conversions = $d['scores']['conversions'] + $total_conversions;
+
       $total_penalty_kicks = isset($league_stats[$d['league_id']]['total_penalty_kicks']) ? $league_stats[$d['league_id']]['total_penalty_kicks'] : 0;
+      $total_penalty_kicks = $d['scores']['penalty_kicks'] + $total_penalty_kicks;
+
       $total_drop_goals = isset($league_stats[$d['league_id']]['total_drop_goals']) ? $league_stats[$d['league_id']]['total_drop_goals'] : 0;
+      $total_drop_goals = $d['scores']['drop_goals'] + $total_drop_goals;
+
       $league_stats[$d['league_id']] = array(
         'league_name' => $d['league_name'],
         'total_matches' => $total_matches + 1,
         'total_points' => ($total_try * 5) + ($total_conversions * 2) + ($total_penalty_kicks * 3) + ($total_drop_goals * 3),
-        'total_try' => $d['scores']['try'] + $total_try,
-        'total_conversions' => $d['scores']['conversions'] + $total_conversions,
-        'total_penalty_kicks' => $d['scores']['penalty_kicks'] + $total_penalty_kicks,
-        'total_drop_goals' => $d['scores']['drop_goals'] + $total_drop_goals,
+        'total_try' => $total_try,
+        'total_conversions' => $total_conversions,
+        'total_penalty_kicks' => $total_penalty_kicks,
+        'total_drop_goals' => $total_drop_goals,
       );
     }
     error_log(print_r($league_stats, true));
