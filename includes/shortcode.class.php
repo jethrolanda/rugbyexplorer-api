@@ -426,7 +426,7 @@ class Shortcode
       $league_stats[$d['league_id']] = array(
         'league_name' => $d['league_name'],
         'total_matches' => $total_matches + 1,
-        'total_points' => $total_try * 5 + $total_conversions * 2 + $total_penalty_kicks * 3 + $total_drop_goals * 3,
+        'total_points' => ($total_try * 5) + ($total_conversions * 2) + ($total_penalty_kicks * 3) + ($total_drop_goals * 3),
         'total_try' => $d['scores']['try'] + $total_try,
         'total_conversions' => $d['scores']['conversions'] + $total_conversions,
         'total_penalty_kicks' => $d['scores']['penalty_kicks'] + $total_penalty_kicks,
