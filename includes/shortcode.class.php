@@ -313,13 +313,19 @@ class Shortcode
       'player_id' => get_the_ID(),
     ), $atts, 'player_games_played');
 
+    // Custom games played count
     $player_id = esc_attr($atts['player_id']);
     $games_played = count($this->get_player_games_played($player_id));
+
+    // From sportspress player data
+    $player = new \SP_Player($player_id);
+    $data = $player->data(0, false);
+
     ob_start();
 
     if ($player_id && $games_played) {
       echo "<div class='sportspress'>";
-      echo $games_played;
+      echo $data[-1]['a'] ?? $games_played;
       echo "</div>";
     }
 
