@@ -58,9 +58,6 @@ class Shortcode
 
     ob_start();
 
-    $args = array(
-      'fixture_id' => get_post_meta(get_the_ID(), 'fixture_id', true)
-    );
     $data = get_post_meta(get_the_ID(), 'rugby_explorer_match_details_data', true);
 
     if (!empty($data['allMatchStatsSummary'])) {

@@ -230,6 +230,11 @@ class Sportspress
       // Skip creating team
       if ($team_id > 0) {
         $team_ids[] = $team_id;
+        // League
+        wp_set_object_terms($team_id, $sportspressLeagueId, 'sp_league');
+
+        // Season
+        wp_set_object_terms($team_id, $sportspressSeasonId, 'sp_season');
         continue;
       }
 
@@ -339,7 +344,15 @@ class Sportspress
         $player_id = substr($player['id'], 0, 17);
 
         // Skip adding if player already exist
-        if ($this->getPostIdByMetaValue('sp_player', 'player_id', $player_id)) continue;
+        $pid = $this->getPostIdByMetaValue('sp_player', 'player_id', $player_id);
+        if ($pid) {
+          // League
+          wp_set_object_terms($pid, $sportspressLeagueId, 'sp_league');
+
+          // Season
+          wp_set_object_terms($pid, $sportspressSeasonId, 'sp_season');
+          continue;
+        }
 
         $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
 
