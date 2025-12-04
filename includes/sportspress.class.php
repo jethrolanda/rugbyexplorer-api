@@ -231,10 +231,16 @@ class Sportspress
       if ($team_id > 0) {
         $team_ids[] = $team_id;
         // League
-        wp_set_object_terms($team_id, $sportspressLeagueId, 'sp_league');
+        $league_ids = wp_get_post_terms($team_id, 'sp_league', ['fields' => 'ids']);
+        $league_ids[] = $sportspressLeagueId;
+        $league_ids = array_unique($league_ids);
+        wp_set_object_terms($team_id, $league_ids, 'sp_league', true);
 
         // Season
-        wp_set_object_terms($team_id, $sportspressSeasonId, 'sp_season');
+        $season_ids = wp_get_post_terms($team_id, 'sp_season', ['fields' => 'ids']);
+        $season_ids[] = $sportspressSeasonId;
+        $season_ids = array_unique($season_ids);
+        wp_set_object_terms($team_id, $season_ids, 'sp_season', true);
         continue;
       }
 
@@ -347,10 +353,16 @@ class Sportspress
         $pid = $this->getPostIdByMetaValue('sp_player', 'player_id', $player_id);
         if ($pid) {
           // League
-          wp_set_object_terms($pid, $sportspressLeagueId, 'sp_league');
+          $league_ids = wp_get_post_terms($pid, 'sp_league', ['fields' => 'ids']);
+          $league_ids[] = $sportspressLeagueId;
+          $league_ids = array_unique($league_ids);
+          wp_set_object_terms($pid, $league_ids, 'sp_league', true);
 
           // Season
-          wp_set_object_terms($pid, $sportspressSeasonId, 'sp_season');
+          $season_ids = wp_get_post_terms($pid, 'sp_season', ['fields' => 'ids']);
+          $season_ids[] = $sportspressSeasonId;
+          $season_ids = array_unique($season_ids);
+          wp_set_object_terms($pid, $season_ids, 'sp_season', true);
           continue;
         }
 
