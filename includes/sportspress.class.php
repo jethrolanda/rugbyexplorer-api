@@ -347,26 +347,42 @@ class Sportspress
     if (!empty($players)) {
       foreach ($players as $player) {
 
+        $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
+
         $player_id = substr($player['id'], 0, 17);
 
         // Skip adding if player already exist
         $pid = $this->getPostIdByMetaValue('sp_player', 'player_id', $player_id);
         if ($pid) {
           // League
-          $league_ids = wp_get_post_terms($pid, 'sp_league', ['fields' => 'ids']);
+          $league_ids = wp_get_post_terms($pid, 'sp_league', array('fields' => 'ids'));
           $league_ids[] = $sportspressLeagueId;
           $league_ids = array_unique($league_ids);
           wp_set_object_terms($pid, $league_ids, 'sp_league', true);
 
           // Season
-          $season_ids = wp_get_post_terms($pid, 'sp_season', ['fields' => 'ids']);
+          $season_ids = wp_get_post_terms($pid, 'sp_season', array('fields' => 'ids'));
           $season_ids[] = $sportspressSeasonId;
           $season_ids = array_unique($season_ids);
           wp_set_object_terms($pid, $season_ids, 'sp_season', true);
+
+          // Current Team
+          $current_team = get_post_meta($pid, 'sp_current_team', true);
+
+          // If not the same team then replace it with new team
+          if ($current_team != $team_id) {
+            $past_teams = get_post_meta($pid, 'sp_past_team', false);
+            $past_teams[] = $current_team;
+            $past_teams = array_values(array_diff($past_teams, array($team_id)));
+
+            // add to past team
+            sp_update_post_meta_recursive($pid, 'sp_past_team', $past_teams);
+
+            // update current team
+            sp_update_post_meta_recursive($pid, 'sp_current_team', array($team_id));
+          }
           continue;
         }
-
-        $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
 
         $post_data = [
           'post_title'   => $player['name'],

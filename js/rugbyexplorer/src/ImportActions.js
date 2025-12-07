@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Button, Space, Popconfirm, notification, Card } from "antd";
+import { Button, Space, Popconfirm, notification, Card, Spin } from "antd";
 
 const ImportActions = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [eventStatus, setEventStatus] = useState([]);
+  const [processedTeam, setProcessedTeam] = useState(0);
+  const [totalTeams, setTotalTeams] = useState(0);
 
   const [api, contextHolder] = notification.useNotification();
   const openNotificationWithIcon = (type, msg, desc) => {
@@ -76,9 +78,15 @@ const ImportActions = () => {
       //   setLoading(false);
       // });
 
-      const teams = Object.entries(
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams || []
+      const clubs =
+        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams || [];
+      const sorted = clubs.sort(
+        (a, b) =>
+          Number(a.season) - Number(b.season) ||
+          a.competition_id.localeCompare(b.competition_id)
       );
+      setTotalTeams(clubs.length);
+      const teams = Object.entries(sorted || []);
 
       for (const [key, team] of teams) {
         const formData = new FormData();
@@ -97,6 +105,7 @@ const ImportActions = () => {
 
           const data = await res.json();
 
+          setProcessedTeam((prev) => prev + 1);
           if (data.status === "success") {
             setEventStatus((prev) => [
               ...prev,
@@ -194,6 +203,14 @@ const ImportActions = () => {
           </li>
         ))}
       </ul>
+      <p>
+        {loading && (
+          <>
+            <Spin spinning={loading} />{" "}
+            {`${processedTeam} out of ${totalTeams} team(s) processed...`}
+          </>
+        )}
+      </p>
     </>
   );
 };

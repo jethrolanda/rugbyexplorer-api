@@ -19,7 +19,6 @@ class RugbyExplorer_API
 	public $blocks;
 	public $ajax;
 	public $shortcode;
-	public $rest;
 	public $sportspress;
 	public $settings;
 	public $rugbyexplorer;
@@ -47,7 +46,6 @@ class RugbyExplorer_API
 		$this->blocks = REA\Plugin\Blocks::instance();
 		$this->ajax = REA\Plugin\Ajax::instance();
 		$this->shortcode = REA\Plugin\Shortcode::instance();
-		$this->rest = REA\Plugin\Rest::instance();
 		$this->sportspress = REA\Plugin\Sportspress::instance();
 		$this->settings = REA\Plugin\Settings::instance();
 		$this->rugbyexplorer = \REA\Plugin\RugbyExplorer::instance();
