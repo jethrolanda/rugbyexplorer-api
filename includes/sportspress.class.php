@@ -426,14 +426,28 @@ class Sportspress
   }
 
 
-  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coahes)
+  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches)
   {
     $job_id = $this->getTermId('Coach', 'sp_role');
 
     if (!empty($coaches)) {
       foreach ($coaches as $coach) {
-        // Skip adding if player already exist
-        if ($this->getPostIdByMetaValue('sp_staff', 'coach_id', $coach['id'])) continue;
+        // Skip adding if staff already exist
+        $staff_id = $this->getPostIdByMetaValue('sp_staff', 'coach_id', $coach['id']);
+        if ($staff_id) {
+          // League
+          $league_ids = wp_get_post_terms($staff_id, 'sp_season', ['fields' => 'ids']);
+          $league_ids[] = $sportspressLeagueId;
+          $league_ids = array_unique($league_ids);
+          wp_set_object_terms($staff_id, $league_ids, 'sp_league');
+
+          // Season
+          $season_ids = wp_get_post_terms($staff_id, 'sp_season', ['fields' => 'ids']);
+          $season_ids[] = $sportspressSeasonId;
+          $season_ids = array_unique($season_ids);
+          wp_set_object_terms($staff_id, $season_ids, 'sp_season');
+          continue;
+        }
 
         $team_id = $coach['isHome'] ? $team_ids[0] : $team_ids[1];
 

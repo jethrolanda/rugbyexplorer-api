@@ -1,10 +1,11 @@
+<h2><?php echo $season; ?></h2>
 <table>
   <thead>
     <tr>
       <th>League</th>
       <th>Matches</th>
       <th>Points</th>
-      <th>Try</th>
+      <th>Tries</th>
       <th>Conversions</th>
       <th>Penalty Kicks</th>
       <th>Drop Goals</th>

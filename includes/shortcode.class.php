@@ -396,64 +396,72 @@ class Shortcode
 
   public function player_stats($atts)
   {
+    $currentYear = (int)date('Y');
+    $startYear = 2019;
     $atts = shortcode_atts(array(
       'player_id' => get_the_ID(),
-      'season' => null,
+      'season' => range($currentYear, $startYear),
     ), $atts, 'player_stats');
 
+    if (!is_array($atts['season'])) {
+      $atts['season'] = array(esc_attr($atts['season']));
+    }
+
     $player_id = esc_attr($atts['player_id']);
-    $season = esc_attr($atts['season']);
-    $events = $this->get_player_games_played($player_id, $season);
-    $filtered_events = $this->get_player_event_filter_by_player_id($player_id, $events);
-    $data = array();
-
-    foreach ($filtered_events as $event_id) {
-      $terms = get_the_terms($event_id, 'sp_league');
-      $data[] = array(
-        'event_id' => $event_id,
-        'player_id' => $player_id,
-        'league_id' => !empty($terms) ? $terms[0]->term_id : 0,
-        'league_name' => !empty($terms) ? $terms[0]->name : '',
-        'scores' => $this->get_player_scores($event_id, $player_id)
-      );
-    }
-
-    // Sort by league data
-    $league_stats = array();
-    foreach ($data as $d) {
-      $total_matches = isset($league_stats[$d['league_id']]['total_matches']) ? $league_stats[$d['league_id']]['total_matches'] : 0;
-
-      $total_try = isset($league_stats[$d['league_id']]['total_try']) ? $league_stats[$d['league_id']]['total_try'] : 0;
-      $total_try = $d['scores']['try'] + $total_try;
-
-      $total_conversions = isset($league_stats[$d['league_id']]['total_conversions']) ? $league_stats[$d['league_id']]['total_conversions'] : 0;
-      $total_conversions = $d['scores']['conversions'] + $total_conversions;
-
-      $total_penalty_kicks = isset($league_stats[$d['league_id']]['total_penalty_kicks']) ? $league_stats[$d['league_id']]['total_penalty_kicks'] : 0;
-      $total_penalty_kicks = $d['scores']['penalty_kicks'] + $total_penalty_kicks;
-
-      $total_drop_goals = isset($league_stats[$d['league_id']]['total_drop_goals']) ? $league_stats[$d['league_id']]['total_drop_goals'] : 0;
-      $total_drop_goals = $d['scores']['drop_goals'] + $total_drop_goals;
-
-      $league_stats[$d['league_id']] = array(
-        'league_name' => $d['league_name'],
-        'total_matches' => $total_matches + 1,
-        'total_points' => ($total_try * 5) + ($total_conversions * 2) + ($total_penalty_kicks * 3) + ($total_drop_goals * 3),
-        'total_try' => $total_try,
-        'total_conversions' => $total_conversions,
-        'total_penalty_kicks' => $total_penalty_kicks,
-        'total_drop_goals' => $total_drop_goals,
-      );
-    }
+    $seasons = $atts['season'];
 
     ob_start();
 
-    if ($player_id) {
-      echo "<div class='sportspress'>";
-      require(REA_VIEWS_ROOT_DIR . 'player-statistics.php');
-      echo "</div>";
-    }
+    foreach ($seasons as $season) {
+      $events = $this->get_player_games_played($player_id, $season);
+      $filtered_events = $this->get_player_event_filter_by_player_id($player_id, $events);
+      $data = array();
 
+      foreach ($filtered_events as $event_id) {
+        $terms = get_the_terms($event_id, 'sp_league');
+        $data[] = array(
+          'event_id' => $event_id,
+          'player_id' => $player_id,
+          'league_id' => !empty($terms) ? $terms[0]->term_id : 0,
+          'league_name' => !empty($terms) ? $terms[0]->name : '',
+          'scores' => $this->get_player_scores($event_id, $player_id)
+        );
+      }
+
+      // Sort by league data
+      $league_stats = array();
+      foreach ($data as $d) {
+        $total_matches = isset($league_stats[$d['league_id']]['total_matches']) ? $league_stats[$d['league_id']]['total_matches'] : 0;
+
+        $total_try = isset($league_stats[$d['league_id']]['total_try']) ? $league_stats[$d['league_id']]['total_try'] : 0;
+        $total_try = $d['scores']['try'] + $total_try;
+
+        $total_conversions = isset($league_stats[$d['league_id']]['total_conversions']) ? $league_stats[$d['league_id']]['total_conversions'] : 0;
+        $total_conversions = $d['scores']['conversions'] + $total_conversions;
+
+        $total_penalty_kicks = isset($league_stats[$d['league_id']]['total_penalty_kicks']) ? $league_stats[$d['league_id']]['total_penalty_kicks'] : 0;
+        $total_penalty_kicks = $d['scores']['penalty_kicks'] + $total_penalty_kicks;
+
+        $total_drop_goals = isset($league_stats[$d['league_id']]['total_drop_goals']) ? $league_stats[$d['league_id']]['total_drop_goals'] : 0;
+        $total_drop_goals = $d['scores']['drop_goals'] + $total_drop_goals;
+
+        $league_stats[$d['league_id']] = array(
+          'league_name' => $d['league_name'],
+          'total_matches' => $total_matches + 1,
+          'total_points' => ($total_try * 5) + ($total_conversions * 2) + ($total_penalty_kicks * 3) + ($total_drop_goals * 3),
+          'total_try' => $total_try,
+          'total_conversions' => $total_conversions,
+          'total_penalty_kicks' => $total_penalty_kicks,
+          'total_drop_goals' => $total_drop_goals,
+        );
+      }
+
+      if ($player_id && !empty($league_stats)) {
+        echo "<div class='sportspress'>";
+        require(REA_VIEWS_ROOT_DIR . 'player-statistics.php');
+        echo "</div>";
+      }
+    }
 
     return ob_get_clean();
   }
