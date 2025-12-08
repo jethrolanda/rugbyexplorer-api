@@ -175,7 +175,6 @@ class Api
     } else {
       $data = json_decode(wp_remote_retrieve_body($response), true);
       $results = $data['data']['getEntityFixturesAndResults'];
-      error_log(print_r($data, true));
       return $results;
     }
   }
