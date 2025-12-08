@@ -57,7 +57,7 @@ class Ajax
   }
 
   /**
-   * Get fuel savings data.
+   * Save settings ajax handler
    * 
    * @since 1.0
    */
@@ -76,9 +76,6 @@ class Ajax
 
       $data = json_decode(stripslashes($_POST['data']), true);
 
-      // update_option('rugbyexplorer_field_api_username', $data['rugbyexplorer_field_api_username']);
-      // update_option('rugbyexplorer_field_api_password', $data['rugbyexplorer_field_api_password']);
-      // update_option('rugbyexplorer_field_schedule_update', $data['rugbyexplorer_field_schedule_update']);
       update_option('rugbyexplorer_options', $data);
 
       wp_send_json(array(
@@ -95,7 +92,7 @@ class Ajax
   }
 
   /**
-   * Delete events
+   * Delete events ajax handler
    * 
    * @since 1.0
    */
@@ -162,6 +159,11 @@ class Ajax
     }
   }
 
+  /**
+   * Create team ajax handler
+   * 
+   * @since 1.0
+   */
   public function create_team()
   {
 
@@ -195,6 +197,11 @@ class Ajax
     }
   }
 
+  /**
+   * Delete team ajax handler
+   * 
+   * @since 1.0
+   */
   public function delete_team()
   {
 

@@ -28,17 +28,13 @@ class Settings
    */
   public function __construct()
   {
-    /**
-     * Register our settings_init to the admin_init action hook.
-     */
+    // Register our settings_init to the admin_init action hook.
     add_action('admin_init', array($this, 'settings_init'));
 
-    /**
-     * Register our register_options_page to the admin_menu action hook.
-     */
+    // Register our register_options_page to the admin_menu action hook.
     add_action('admin_menu', array($this, 'register_options_page'));
 
-    add_action('update_option_fusesport_options', array($this, 'on_setting_page_update'), 10, 2);
+    // On option update
     add_action('updated_option', array($this, 'on_update_option'), 10, 3);
   }
 
@@ -54,8 +50,11 @@ class Settings
     }
     return self::$_instance;
   }
+
   /**
-   * custom option and settings
+   * Custom option and settings
+   * 
+   * @since 1.0
    */
   public function settings_init()
   {
@@ -68,32 +67,6 @@ class Settings
       '',
       '',
       'rugbyexplorer'
-    );
-
-    add_settings_field(
-      'sportspress_field_api_username',
-      // Use $args' label_for to populate the id inside the callback.
-      __('SportsPress API Username', 'rugbyexplorer'),
-      array($this, 'sportspress_field_api_username_cb'),
-      'rugbyexplorer',
-      'rugbyexplorer_section_developers',
-      array(
-        'label_for'         => 'sportspress_field_api_username',
-        'class'             => 'rugbyexplorer_row',
-      )
-    );
-
-    add_settings_field(
-      'sportspress_field_api_password', // As of WP 4.6 this value is used only internally.
-      // Use $args' label_for to populate the id inside the callback.
-      __('SportsPress API Password', 'rugbyexplorer'),
-      array($this, 'sportspress_field_api_password_cb'),
-      'rugbyexplorer',
-      'rugbyexplorer_section_developers',
-      array(
-        'label_for'         => 'sportspress_field_api_password',
-        'class'             => 'rugbyexplorer_row',
-      )
     );
 
     add_settings_field(
@@ -204,7 +177,7 @@ class Settings
 
 
   /**
-   * Pill field callbakc function.
+   * Callback for displaying seasing ID
    *
    * WordPress has magic interaction with the following keys: label_for, class.
    * - the "label_for" key value is used for the "for" attribute of the <label>.
@@ -212,38 +185,24 @@ class Settings
    * Note: you can add custom key value pairs to be used inside your callbacks.
    *
    * @param array $args
+   * @since 1.0
    */
-
-  public function sportspress_field_api_username_cb($args)
-  {
-    // Get the value of the setting we've registered with register_setting()
-    $options = get_option('rugbyexplorer_options'); ?>
-    <input style="width: 400px" type="text" placeholder="Username" id="<?php echo esc_attr($args['label_for']); ?>" name="rugbyexplorer_options[<?php echo esc_attr($args['label_for']); ?>]" value="<?php echo isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : ''; ?>" />
-    <p>Add your wordpress username here. Sportspress API requires username and app password to do an API request. The API will use basic authentication (WordPress username + application password).</p>
-
-  <?php
-  }
-
-  public function sportspress_field_api_password_cb($args)
-  {
-    // Get the value of the setting we've registered with register_setting()
-    $options = get_option('rugbyexplorer_options');
-  ?>
-    <input style="width: 400px" type="password" placeholder="Password" id="<?php echo esc_attr($args['label_for']); ?>" name="rugbyexplorer_options[<?php echo esc_attr($args['label_for']); ?>]" value="<?php echo isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : ''; ?>" />
-    <p>Create application password at WP Admin → Users → Your Profile → Application Passwords → Add New then add the generated password here.</p>
-  <?php
-  }
-
   public function rugbyexplorer_season_id_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
     $options = get_option('rugbyexplorer_options');
-  ?>
+?>
     <input style="width: 400px" type="text" placeholder="Season ID" id="<?php echo esc_attr($args['label_for']); ?>" name="rugbyexplorer_options[<?php echo esc_attr($args['label_for']); ?>]" value="<?php echo isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : ''; ?>" />
     <p>Add rugbyexplorer season ID here.</p>
   <?php
   }
 
+  /**
+   * Callback for displaying women competition IDs
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_women_competition_ids_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -254,6 +213,12 @@ class Settings
   <?php
   }
 
+  /**
+   * Callback for displaying junior competition IDs
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_junior_competition_ids_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -264,6 +229,12 @@ class Settings
   <?php
   }
 
+  /**
+   * Callback for displaying senior competition IDs
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_senior_competition_ids_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -274,6 +245,12 @@ class Settings
   <?php
   }
 
+  /**
+   * Callback for displaying women team IDs
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_women_team_ids_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -284,6 +261,12 @@ class Settings
   <?php
   }
 
+  /**
+   * Callback for displaying junior team IDs
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_junior_team_ids_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -304,7 +287,12 @@ class Settings
   <?php
   }
 
-
+  /**
+   * Callback for displaying recurring update frequency
+   * 
+   * @param array $args
+   * @since 1.0
+   */
   public function rugbyexplorer_schedule_update_cb($args)
   {
     // Get the value of the setting we've registered with register_setting()
@@ -320,9 +308,11 @@ class Settings
   <?php
   }
 
-
   /**
-   * Add the top level menu page.
+   * Add top level menu page
+   * 
+   * @param array $args
+   * @since 1.0
    */
   public function register_options_page()
   {
@@ -336,7 +326,10 @@ class Settings
   }
 
   /**
-   * Top level menu callback function
+   * Top level menu callback
+   * 
+   * @param array $args
+   * @since 1.0
    */
   public function options_page()
   {
@@ -378,21 +371,14 @@ class Settings
 <?php
   }
 
-  // 3️⃣ React to setting change — reschedule event if needed
-  public function on_setting_page_update($old, $new)
-  {
-    if ($old['rugbyexplorer_field_schedule_update'] != $new['rugbyexplorer_field_schedule_update']) {
-      // Remove old schedule
-      wp_clear_scheduled_hook('rugbyexplorer_schedule_update');
-
-      // Add new schedule
-      wp_schedule_event(time(), $new['rugbyexplorer_field_schedule_update'], 'rugbyexplorer_schedule_update');
-
-      $this->update_schedule_action_scheduler($new['rugbyexplorer_field_schedule_update']);
-    }
-  }
-
-  // Fallback if above misses
+  /**
+   * Update recurring frequency scheduler
+   * 
+   * @param array $option
+   * @param array $old
+   * @param array $new
+   * @since 1.0
+   */
   public function on_update_option($option, $old, $new)
   {
     if ($option === 'rugbyexplorer_options') {
@@ -407,28 +393,36 @@ class Settings
     }
   }
 
+  /**
+   * Update action scheduler
+   * 
+   * @param string $frequency
+   * @since 1.0
+   */
   public function update_schedule_action_scheduler($frequency)
   {
-    // Remove all existing scheduled actions
-    \as_unschedule_all_actions('rugbyexplorer_scheduled_events_update');
+    if (class_exists('ActionScheduler')) {
+      // Remove all existing scheduled actions
+      as_unschedule_all_actions('rugbyexplorer_scheduled_events_update');
 
-    $interval = DAY_IN_SECONDS;
-    switch ($frequency) {
-      case 'weekly':
-        $interval = WEEK_IN_SECONDS;
-        break;
-      case 'every_fifteen_minutes':
-        $interval = 15 * MINUTE_IN_SECONDS;
-        break;
-      default:
-        $interval = DAY_IN_SECONDS;
+      $interval = DAY_IN_SECONDS;
+      switch ($frequency) {
+        case 'weekly':
+          $interval = WEEK_IN_SECONDS;
+          break;
+        case 'every_fifteen_minutes':
+          $interval = 15 * MINUTE_IN_SECONDS;
+          break;
+        default:
+          $interval = DAY_IN_SECONDS;
+      }
+
+      // New scheduled action
+      as_schedule_recurring_action(
+        time(),
+        $interval,
+        'rugbyexplorer_scheduled_events_update',
+      );
     }
-
-    // New scheduled action
-    as_schedule_recurring_action(
-      time(),
-      $interval,
-      'rugbyexplorer_scheduled_events_update',
-    );
   }
 }

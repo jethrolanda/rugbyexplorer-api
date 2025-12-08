@@ -24,7 +24,7 @@ class RugbyExplorer
    */
   public function __construct()
   {
-    // add_action('init', array($this, 'request'));
+    // Ajax request for performing per team events import
     add_action('wp_ajax_rugbyexplorer_api', array($this, 'request_data'));
   }
 
@@ -41,6 +41,12 @@ class RugbyExplorer
     return self::$_instance;
   }
 
+  /**
+   * Perform events import per team. 
+   * Import fixtures and results.
+   *  
+   * @since 1.0
+   */
   public function request_data()
   {
 
@@ -118,51 +124,6 @@ class RugbyExplorer
         'data' => array(
           'event_status'  => array_merge($status, array('time' => round($execution_time, 2))),
         ),
-      ));
-    } catch (\Exception $e) {
-      wp_send_json(array(
-        'status' => 'error',
-        'message' => $e->getMessage(),
-      ));
-    }
-  }
-  public function request_data2()
-  {
-
-    if (!defined('DOING_AJAX') || !DOING_AJAX) {
-      wp_die();
-    }
-
-    if (!is_user_logged_in()) {
-      wp_die();
-    }
-
-    try {
-      global $rea;
-      $options = get_option('rugbyexplorer_options');
-
-      foreach ($options['rugbyexplorer_field_club_teams'] as $team) {
-        // Upcoming Fixtures
-        $rea->api->getData(array(
-          'season' => $team['season'],
-          'competition' => $team['competition_id'],
-          'team' => $team['team_id'],
-          'entityId' => (int) $team['entity_id'],
-          'type' =>  'fixtures'
-        ));
-        // Recent Results
-        $rea->api->getData(array(
-          'season' => $team['season'],
-          'competition' => $team['competition_id'],
-          'team' => $team['team_id'],
-          'entityId' => (int) $team['entity_id'],
-          'type' =>  'results'
-        ));
-      }
-
-      wp_send_json(array(
-        'status' => 'success',
-        'data' => array(),
       ));
     } catch (\Exception $e) {
       wp_send_json(array(

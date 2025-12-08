@@ -39,6 +39,14 @@ class Api
     return self::$_instance;
   }
 
+  /**
+   * Get fixtures or results Data from Rugby Xplorer GraphQL API
+   *
+   * @param array $args Arguments for the data request 
+   *
+   * @return array fixtures or results Data from the API
+   * @since 1.0
+   */
   public function getData($args = array())
   {
     // args example
@@ -172,102 +180,20 @@ class Api
     }
   }
 
-  public function getLadder($matchId)
-  {
-    $body = [
-      "operationName" => "CompLadderQuery",
-      "variables" => [
-        "comp" => [
-          "id" => $matchId, //"mLGoqgHnacX2AnmgD",
-          "sourceType" => "2"
-        ]
-      ],
-      "query" => "query CompLadderQuery(\$comp: CompInput) {
-      compLadder(comp: \$comp) {
-        ...LadderCard_ladder
-        __typename
-      }
-    }
-
-    fragment LadderCard_ladder on Ladder {
-      id
-      hasPools
-      ladderPools {
-        id
-        poolName
-        teams {
-          ...LadderCard_ladderTeam
-          __typename
-        }
-        __typename
-      }
-      sortingOptions
-      overallSort
-      __typename
-    }
-
-    fragment LadderCard_ladderTeam on LadderTeam {
-      active
-      bonusPoints3T
-      bonusPoints4T
-      bonusPoints7P
-      byes
-      crest
-      id
-      matchWinRatio
-      matchesDrawn
-      matchesLost
-      matchesPlayed
-      matchesWon
-      name
-      numberForfeitsLoss
-      numberForfeitsWin
-      numberOfForfeits
-      pointsADJ
-      pointsAgainst
-      pointsAgainstADJ
-      pointsDifference
-      pointsFor
-      pointsForADJ
-      pointsRatio
-      position
-      scoreRatio
-      totalBonusPoints
-      totalMatchPoints
-      totalTries
-      tryDifference
-      __typename
-    }"
-    ];
-
-    $response = wp_remote_post($this->api_url, [
-      'headers' => [
-        'Content-Type' => 'application/json',
-        // If the API requires authentication, uncomment below:
-        // 'Authorization' => 'Bearer your_token_here'
-      ],
-      'body' => wp_json_encode($body),
-      'method' => 'POST',
-      'timeout' => 30,
-    ]);
-
-    if (is_wp_error($response)) {
-      error_log('GraphQL Error getLadder: ' . $response->get_error_message());
-    } else {
-      $data = json_decode(wp_remote_retrieve_body($response), true);
-      $results = $data['data']['getEntityFixturesAndResults'];
-    }
-  }
-
+  /**
+   * Get match details from Rugby Xplorer GraphQL API.
+   *
+   * @param array $args Arguments for the data request
+   *
+   * @return array Match details Data from the API
+   * @since 1.0
+   */
   public function getMatchDetails($args = array())
   {
     //  fixture_id, match id, event id from api
     extract($args);
 
-    // Rugby Xplorer GraphQL endpoint (update if different)
-    $graphql_url = 'https://rugby-au-cms.graphcdn.app/';
-
-    $body = [
+    $body = array(
       "operationName" => "matchdetailsRugbyComAu",
       "variables" => [
         "comp" => [
@@ -486,9 +412,9 @@ class Api
       isActive
       __typename
     }"
-    ];
+    );
 
-    $response = wp_remote_post($graphql_url, [
+    $response = wp_remote_post($this->api_url, array(
       'headers' => [
         'Content-Type' => 'application/json',
       ],
@@ -498,7 +424,7 @@ class Api
       // Fix for some servers not resolving IPv6 properly
       'cookies' => array(),
       'sslverify' => false,         // GraphCDN sometimes fails if strict SSL
-    ]);
+    ));
 
     if (is_wp_error($response)) {
       error_log('GraphQL Request Error getPlayerLineUpData: ' . $response->get_error_message());
@@ -506,17 +432,20 @@ class Api
       $data = json_decode(wp_remote_retrieve_body($response), true);
 
       return $data['data'];
-      // echo '<pre>';
-      // print_r($data);
-      // echo '</pre>';
     }
   }
 
+  /**
+   * Get ladder data from Rugby Xplorer GraphQL API.
+   *
+   * @param array $args Arguments for the data request
+   *
+   * @return array Ladder Data from the API
+   * @since 1.0
+   */
   public function getCompetitionLadderData($args)
   {
     extract($args);
-
-    $graphql_url = 'https://rugby-au-cms.graphcdn.app/';
 
     $body = [
       "operationName" => "CompLadderQuery",
@@ -562,7 +491,7 @@ class Api
       'data_format' => 'body',
     ];
 
-    $response = wp_remote_post($graphql_url, $args);
+    $response = wp_remote_post($this->api_url, $args);
 
     if (is_wp_error($response)) {
       error_log('GraphQL Request Error: ' . $response->get_error_message());
@@ -570,9 +499,6 @@ class Api
       $data = json_decode(wp_remote_retrieve_body($response), true);
 
       return $data['data']['compLadder'];
-      // echo '<pre>';
-      // print_r($data);
-      // echo '</pre>';
     }
   }
 }

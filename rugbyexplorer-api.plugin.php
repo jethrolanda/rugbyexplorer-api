@@ -16,7 +16,6 @@ class RugbyExplorer_API
 	private static $_instance;
 
 	public $scripts;
-	public $blocks;
 	public $ajax;
 	public $shortcode;
 	public $sportspress;
@@ -43,7 +42,6 @@ class RugbyExplorer_API
 	{
 
 		$this->scripts = REA\Plugin\Scripts::instance();
-		$this->blocks = REA\Plugin\Blocks::instance();
 		$this->ajax = REA\Plugin\Ajax::instance();
 		$this->shortcode = REA\Plugin\Shortcode::instance();
 		$this->sportspress = REA\Plugin\Sportspress::instance();
@@ -85,6 +83,8 @@ class RugbyExplorer_API
 	public function activate()
 	{
 
+		// Check if ActionSheduler class exists
+		// This class exist in WooCommerce or ActionScheduler plugin
 		if (class_exists('ActionScheduler')) {
 			// Avoid scheduling duplicate recurring action
 			if (!as_next_scheduled_action('rugbyexplorer_scheduled_events_update')) {

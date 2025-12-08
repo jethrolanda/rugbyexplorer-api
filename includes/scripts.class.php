@@ -52,7 +52,6 @@ class Scripts
    * Load wp admin backend scripts
    *
    * @since 1.0
-   * @return bool
    */
   public function backend_script_loader()
   {
@@ -67,13 +66,6 @@ class Scripts
         'nonce' => wp_create_nonce('wp_rest'),
         'ajax_url' => admin_url('admin-ajax.php'),
         'settings' => $settings ? $settings : array()
-        // array(
-        //   'rugbyexplorer_field_api_username' => get_option('rugbyexplorer_field_api_username') ?: "",
-        //   'rugbyexplorer_field_api_password' => get_option('rugbyexplorer_field_api_password') ?: "",
-        //   'rugbyexplorer_field_schedule_update' => get_option('rugbyexplorer_field_schedule_update') ?: "",
-        //   'rugbyexplorer_field_club_teams' => get_option('rugbyexplorer_field_club_teams') ?: array()
-        // )
-
       ));
       wp_register_style('rugbyexplorer-css', REA_JS_ROOT_URL . 'rugbyexplorer/build/style-index.css');
 
@@ -85,11 +77,7 @@ class Scripts
   /**
    * Load wp frontend scripts
    *
-   * @since 1.0
-   * @return bool
+   * @since 1.0 
    */
-  public function frontend_script_loader()
-  {
-    wp_register_style('rugbyexplorer-api-css', REA_CSS_ROOT_URL . 'style.min.css');
-  }
+  public function frontend_script_loader() {}
 }

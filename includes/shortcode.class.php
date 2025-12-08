@@ -45,7 +45,13 @@ class Shortcode
     return self::$_instance;
   }
 
-
+  /**
+   * Display player lineup.
+   * The lineup is stored in event postmeta during events import.
+   * 
+   * @param array $atts
+   * @since 1.0
+   */
   public function player_lineup($atts)
   {
 
@@ -64,11 +70,17 @@ class Shortcode
       require(REA_VIEWS_ROOT_DIR . 'player-lineup-view.php');
     }
 
-
     // content
     return ob_get_clean();
   }
 
+  /**
+   * Display team ladder data.
+   * Pull data from rugbyexplorer via api call
+   * 
+   * @param array $atts
+   * @since 1.0
+   */
   public function team_ladder($atts)
   {
     global $rea;
@@ -109,10 +121,19 @@ class Shortcode
     return ob_get_clean();
   }
 
-
-
+  /**
+   * Display team events data.
+   * Pull data from rugbyexplorer via api call.
+   * Temporary solution while working on the events import function.
+   * NOTE: This is now not need since we already have the feature ready. 
+   *       Just keeping this here just in case needed.
+   * 
+   * @param array $atts
+   * @since 1.0
+   */
   public function team_events($atts)
   {
+    global $rea;
     $atts = shortcode_atts(array(
       'id' => uniqid(),
       'entity_id' => '',
@@ -123,7 +144,7 @@ class Shortcode
 
     ob_start();
 
-    $data = $this->getTeamCompetitionEventsData($atts);
+    $data = $rea->api->getData($atts);
 
     if (!empty($data)) {
       require(REA_VIEWS_ROOT_DIR . 'team-events-view.php');
@@ -133,136 +154,14 @@ class Shortcode
     return ob_get_clean();
   }
 
-  public function getTeamCompetitionEventsData($args)
-  {
-    // args example
-    // $args = array(
-    //   'season' => '2025',
-    //   'competition' => 'mLGoqgHnacX2AnmgD',
-    //   'team' => 'DZJhdynaY4wSDBQpQ',
-    //   'entityId' => '53371',
-    //   'type' => 'fixtures' or 'results'
-    // );
-    extract($args);
-
-    $body = [
-      "operationName" => "EntityFixturesAndResults",
-      "variables" => [
-        "season" => $season,
-        "comps" => [
-          [
-            "id" => $competition_id,
-            "sourceType" => "2"
-          ]
-        ],
-        "teams" => [$team_id],
-        "type" => 'results',
-        "skip" => 0,
-        "limit" => 100,
-        "entityId" => (int)$entity_id,
-        "entityType" => "club"
-      ],
-      "query" => "query EntityFixturesAndResults(\$entityId: Int, \$entityType: String, \$season: String, \$comps: [CompInput], \$teams: [String], \$type: String, \$skip: Int, \$limit: Int) {
-      getEntityFixturesAndResults(
-        season: \$season
-        comps: \$comps
-        teams: \$teams
-        entityId: \$entityId
-        entityType: \$entityType
-        type: \$type
-        limit: \$limit
-        skip: \$skip
-      ) {
-        ...Fixtures_fixture
-        __typename
-      }
-    }
-
-    fragment Fixtures_fixture on FixtureItem {
-      id
-      compId
-      compName
-      dateTime
-      group
-      isLive
-      isBye
-      round
-      roundType
-      roundLabel
-      season
-      status
-      venue
-      sourceType
-      matchLabel
-      homeTeam {
-        ...Fixtures_team
-        __typename
-      }
-      awayTeam {
-        ...Fixtures_team
-        __typename
-      }
-      fixtureMeta {
-        ...Fixtures_meta
-        __typename
-      }
-      __typename
-    }
-
-    fragment Fixtures_team on Team {
-      id
-      name
-      teamId
-      score
-      crest
-      __typename
-    }
-
-    fragment Fixtures_meta on Fixture {
-      id
-      ticketURL
-      ticketsAvailableDate
-      isSoldOut
-      radioURL
-      radioStart
-      radioEnd
-      streamURL
-      streamStart
-      streamEnd
-      broadcastPartners {
-        ...Fixtures_broadcastPartners
-        __typename
-      }
-      __typename
-    }
-
-    fragment Fixtures_broadcastPartners on BroadcastPartner {
-      id
-      name
-      link
-      photoId
-      __typename
-    }"
-    ];
-
-    $response = wp_remote_post('https://rugby-au-cms.graphcdn.app/', [
-      'headers' => [
-        'Content-Type' => 'application/json',
-      ],
-      'body' => wp_json_encode($body),
-      'method' => 'POST',
-      'data_format' => 'body',
-    ]);
-
-    if (is_wp_error($response)) {
-      error_log('GraphQL Error: ' . $response->get_error_message());
-    } else {
-      $data = json_decode(wp_remote_retrieve_body($response), true);
-      $results = $data['data']['getEntityFixturesAndResults'];
-      return $results;
-    }
-  }
-
+  /**
+   * Display points summary data.
+   * The data is stored in event postmeta during events import.
+   * 
+   * @param array $atts
+   * @return string
+   * @since 1.0
+   */
   public function points_summary($atts)
   {
     $atts = shortcode_atts(array(
@@ -285,6 +184,13 @@ class Shortcode
     return ob_get_clean();
   }
 
+  /**
+   * Display top scorer data.
+   * 
+   * @param array $atts
+   * @return string
+   * @since 1.0
+   */
   public function top_scorer($atts)
   {
     $atts = shortcode_atts(array(
@@ -307,6 +213,14 @@ class Shortcode
     return ob_get_clean();
   }
 
+  /**
+   * Display player total games played.
+   * Use sportspress calculation else use custom one.
+   * 
+   * @param array $atts
+   * @return string
+   * @since 1.0
+   */
   public function player_games_played($atts)
   {
     $atts = shortcode_atts(array(
@@ -333,6 +247,15 @@ class Shortcode
     return ob_get_clean();
   }
 
+  /**
+   * Helper function that perform a query to get all events the player
+   * The data is stored in event postmeta during events import.
+   * 
+   * @param int $player_id
+   * @param int|null $year
+   * @return array
+   * @since 1.0
+   */
   public function get_player_games_played($player_id, $year = null)
   {
     global $wpdb;
@@ -372,6 +295,14 @@ class Shortcode
     return $sp_player_ids;
   }
 
+  /**
+   * Get player match history data. 
+   * List down events the player played.
+   * 
+   * @param array $atts
+   * @return string
+   * @since 1.0
+   */
   public function player_matches_history($atts)
   {
     $atts = shortcode_atts(array(
@@ -394,6 +325,14 @@ class Shortcode
     return ob_get_clean();
   }
 
+  /**
+   * Get player statistics data per season.
+   * Show player scores per league by season.
+   * 
+   * @param array $atts
+   * @return string
+   * @since 1.0
+   */
   public function player_stats($atts)
   {
     $currentYear = (int)date('Y');
@@ -466,7 +405,14 @@ class Shortcode
     return ob_get_clean();
   }
 
-  // find from the events played where the player scored points
+  /**
+   * Helper function: Find from the events played where the player scored points
+   * 
+   * @param int $player_id
+   * @param array $events
+   * @return array
+   * @since 1.0
+   */
   public function get_player_event_filter_by_player_id($player_id, $events)
   {
     global $wpdb;
@@ -505,6 +451,14 @@ class Shortcode
     return $sp_player_ids;
   }
 
+  /**
+   * Helper function: Tally player scores
+   * 
+   * @param int $event_id
+   * @param int $player_id
+   * @return array
+   * @since 1.0
+   */
   public function get_player_scores($event_id, $player_id)
   {
     $scores = get_post_meta($event_id, 'sp_players', true);

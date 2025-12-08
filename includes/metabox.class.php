@@ -21,22 +21,22 @@ class Metabox
    */
   public function __construct()
   {
-    // 1️⃣ Add the meta box Game Fixture ID
+    // Add the meta box Game Fixture ID
     add_action('add_meta_boxes', array($this, 'add_game_fixture_id_metabox'));
 
-    // 3️⃣ Save the Fixture ID meta box data
+    // Save the Fixture ID meta box data
     add_action('save_post_sp_event', array($this, 'save_game_fixture_id_metabox'));
 
-    // 1️⃣ Add the meta box Player ID
+    // Add the meta box Player ID
     add_action('add_meta_boxes', array($this, 'add_player_id_metabox'));
 
-    // 3️⃣ Save the Player ID meta box data
+    // Save the Player ID meta box data
     add_action('save_post_sp_player', array($this, 'save_player_id_metabox'));
 
-    // 1️⃣ Add the meta box Team ID
+    // Add the meta box Team ID
     add_action('add_meta_boxes', array($this, 'add_team_id_metabox'));
 
-    // 3️⃣ Save the Team ID meta box data
+    // Save the Team ID meta box data
     add_action('save_post_sp_team', array($this, 'save_team_id_metabox'));
   }
 
@@ -53,6 +53,11 @@ class Metabox
     return self::$_instance;
   }
 
+  /**
+   * Initialize custom metabox for fixture ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function add_game_fixture_id_metabox()
   {
     add_meta_box(
@@ -65,7 +70,11 @@ class Metabox
     );
   }
 
-  // 2️⃣ Render the meta box HTML
+  /**
+   * Callback for rendering fixture ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function render_game_fixture_id()
   {
     // Security nonce
@@ -79,6 +88,8 @@ class Metabox
     <p>
       <label for="fixture_id"><strong>Fixture ID:</strong></label><br>
       <input
+        disabled
+        disabled
         type="text"
         id="fixture_id"
         name="fixture_id"
@@ -90,6 +101,13 @@ class Metabox
   <?php
   }
 
+  /**
+   * Callback for saving fixture ID from rugbyexplorer
+   * 
+   * @param int $post_id Event ID
+   * 
+   * @since 1.0
+   */
   public function save_game_fixture_id_metabox($post_id)
   {
 
@@ -113,6 +131,11 @@ class Metabox
     }
   }
 
+  /**
+   * Initialize custom metabox for player ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function add_player_id_metabox()
   {
     add_meta_box(
@@ -125,7 +148,11 @@ class Metabox
     );
   }
 
-  // 2️⃣ Render the meta box HTML
+  /**
+   * Callback for rendering player ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function render_player_id()
   {
     // Security nonce
@@ -139,6 +166,7 @@ class Metabox
     <p>
       <label for="player_id"><strong>Player ID:</strong></label><br>
       <input
+        disabled
         type="text"
         id="player_id"
         name="player_id"
@@ -150,6 +178,13 @@ class Metabox
   <?php
   }
 
+  /**
+   * Call back for saving player ID from rugbyexplorer
+   * 
+   * @param int $post_id Player post ID
+   * 
+   * @since 1.0
+   */
   public function save_player_id_metabox($post_id)
   {
 
@@ -173,6 +208,11 @@ class Metabox
     }
   }
 
+  /**
+   * Initialize custom metabox for team ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function add_team_id_metabox()
   {
     add_meta_box(
@@ -185,7 +225,11 @@ class Metabox
     );
   }
 
-  // 2️⃣ Render the meta box HTML
+  /**
+   * Callback for rendering team ID from rugbyexplorer
+   * 
+   * @since 1.0
+   */
   public function render_team_id()
   {
     // Security nonce
@@ -197,8 +241,9 @@ class Metabox
   ?>
 
     <p>
-      <label for="player_id"><strong>Team ID:</strong></label><br>
+      <label for="team_id"><strong>Team ID:</strong></label><br>
       <input
+        disabled
         type="text"
         id="team_id"
         name="team_id"
@@ -210,6 +255,13 @@ class Metabox
 <?php
   }
 
+  /**
+   * Callback for saving team ID from rugbyexplorer
+   * 
+   * @param int $post_id Post Team ID
+   * 
+   * @since 1.0
+   */
   public function save_team_id_metabox($post_id)
   {
 

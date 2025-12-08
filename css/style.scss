@@ -1,16 +1,2 @@
-@import 'mixin', 'colors';
-@import 'modal';
-
-.round{
-  background: #1d76b5;
-    color: #FFF;
-    font-weight: bold;
-    padding: 8px;
-}
-table.fixtures, table.ladders, table.final-placings{
-  border-color: #1d76b5; 
-  width: 100%;
-  td{
-    padding: 5px 10px;
-  }
-}
+@import 'mixin', 'colors', 'modal';
+ 

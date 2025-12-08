@@ -21,8 +21,6 @@ class Cron
    */
   public function __construct()
   {
-    add_filter('cron_schedules', array($this, 'add_custom_cron_schedules'));
-
     // Action Scheduler hook
     add_action('rugbyexplorer_scheduled_events_update', array($this, 'rugbyexplorer_scheduled_events_update'));
     add_action('rugbyexplorer_update_club_events', array($this, 'rugbyexplorer_update_club_events'));
@@ -41,19 +39,11 @@ class Cron
     return self::$_instance;
   }
 
-  function add_custom_cron_schedules($schedules)
-  {
-    $schedules['weekly'] = [
-      'interval' => 7 * DAY_IN_SECONDS, // 604800 seconds
-      'display'  => __('Once Weekly'),
-    ];
-    $schedules['every_fifteen_minutes'] = array(
-      'interval' => 15 * 60, // 15 minutes in seconds
-      'display'  => __('Every 15 Minutes'),
-    );
-    return $schedules;
-  }
-
+  /**
+   * Queue action scheduler action events per team
+   * 
+   * @since 1.0
+   */
   public function rugbyexplorer_scheduled_events_update()
   {
     try {
@@ -72,6 +62,13 @@ class Cron
     }
   }
 
+  /**
+   * Action Scheduler hook that updates team events
+   * 
+   * @param array $team Team data
+   * 
+   * @since 1.0
+   */
   public function rugbyexplorer_update_club_events($team)
   {
     try {

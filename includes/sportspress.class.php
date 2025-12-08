@@ -40,6 +40,15 @@ class Sportspress
     return self::$_instance;
   }
 
+  /**
+   * Create events by batch to avoid timeouts.
+   * Only create team if the match or fixture ID does not exist else perform only updates.
+   * 
+   * @param array $games Games played by the team
+   * @param array $args
+   * @return array
+   * @since 1.0
+   */
   public function createEvents($games, $args)
   {
     global $rea, $wpdb;
@@ -209,6 +218,15 @@ class Sportspress
     return $status;
   }
 
+  /**
+   * Create teams. Only create if team ID does not exist else perform update.
+   * 
+   * @param array $teams
+   * @param int $sportspressSeasonId
+   * @param int $sportspressLeagueId
+   * @return array
+   * @since 1.0
+   */
   public function createTeams($teams, $sportspressSeasonId, $sportspressLeagueId)
   {
     $team_ids = array();
@@ -217,12 +235,6 @@ class Sportspress
 
       $team_name = !empty($team['name']) ? trim($team['name']) : "";
       $team_id_api = isset($team['teamId']) ? $team['teamId'] : "";
-
-      // Skip creating team
-      // if ($team_id_api == 0 || empty($team_name)) {
-      //   $team_ids[] = $this->createByeTeam();
-      //   continue;
-      // }
 
       // Check if team exist
       $team_id = $this->getPostIdByMetaValue('sp_team', 'team_id', $team_id_api);
@@ -281,58 +293,15 @@ class Sportspress
     return $team_ids;
   }
 
-  public function createByeTeam()
-  {
 
-    global $wpdb;
-    $post_title = 'BYE';
-    $post_id = $wpdb->get_var($wpdb->prepare(
-      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = 'sp_team' LIMIT 1",
-      $post_title
-    ));
-
-    if ($post_id) {
-      return $post_id;
-    }
-
-    $post_data = array(
-      'post_title'   => 'BYE',
-      'post_status'  => 'publish',
-      'post_author'  => get_current_user_id(),
-      'post_type'    => 'sp_team'
-    );
-
-    $post_id = wp_insert_post($post_data);
-    return $post_id;
-  }
-
-  // Not used: create custom player
-  public function createCustomPlayer($custom_player)
-  {
-
-    global $wpdb;
-    $post_id = $wpdb->get_var($wpdb->prepare(
-      "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = 'sp_player' LIMIT 1",
-      $custom_player
-    ));
-
-    if ($post_id) {
-      return $post_id;
-    }
-
-    $post_data = array(
-      'post_title'   => $custom_player,
-      'post_status'  => 'publish',
-      'post_author'  => get_current_user_id(),
-      'post_type'    => 'sp_player'
-    );
-
-    $post_id = wp_insert_post($post_data);
-    return $post_id;
-  }
-
-  // If venue not exist then create new
-  // If venue exist then return id
+  /**
+   * If venue not exist then create new
+   * If venue exist then return id
+   * 
+   * @param string $venue
+   * @return int
+   * @since 1.0
+   */
   public function createVenue($venue)
   {
 
@@ -341,6 +310,15 @@ class Sportspress
     return $this->getTermId($venue, 'sp_venue');
   }
 
+  /**
+   * Create players. Check if player ID does not exist then create else only update.
+   * 
+   * @param array $team_ids
+   * @param int $sportspressSeasonId
+   * @param int $sportspressLeagueId
+   * @param array $players 
+   * @since 1.0
+   */
   public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players)
   {
 
@@ -441,7 +419,16 @@ class Sportspress
     }
   }
 
-
+  /**
+   * Create staffs. Check if staff ID does not exist then create else only update.
+   * 
+   * @param int $matchId
+   * @param array $team_ids
+   * @param int $sportspressSeasonId
+   * @param int $sportspressLeagueId
+   * @param array $coaches 
+   * @since 1.0
+   */
   public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches)
   {
     $job_id = $this->getTermId('Coach', 'sp_role');
@@ -503,6 +490,14 @@ class Sportspress
     }
   }
 
+  /**
+   * Create official. Check if official ID does not exist then create else only update.
+   * 
+   * @param int $matchId 
+   * @param int $event_id 
+   * @param array $referees 
+   * @since 1.0
+   */
   public function createOfficial($matchId,  $event_id, $referees)
   {
 
@@ -554,7 +549,16 @@ class Sportspress
     }
   }
 
-  // Box scores
+  /**
+   * Box scores. Tally team player scores.
+   * 
+   * @param array $team_ids 
+   * @param int|bool $event_id 
+   * @param array|null $game 
+   * @param array $players
+   * @param array $data
+   * @since 1.0
+   */
   public function addPointsSummary($team_ids = array(), $event_id = false, $game = null, $players = array(), $data = array())
   {
 
@@ -906,7 +910,14 @@ class Sportspress
     }
   }
 
-
+  /**
+   * Assign players to their respective teams.
+   * 
+   * @param int $event_id 
+   * @param array $players
+   * @param array $data
+   * @since 1.0
+   */
   public function assignPlayers($event_id, $players, $data)
   {
 
@@ -949,23 +960,15 @@ class Sportspress
     sp_update_post_meta_recursive($event_id, 'sp_player', $team_members);
   }
 
-  // HELPER FUNCTIONS
-  public function getSiteUrl()
-  {
-    // If local env then use the docke host url else use regular url
-    if (defined('WP_ENVIRONMENT_TYPE') && WP_ENVIRONMENT_TYPE === 'local') {
-      if (defined('WP_DOCKER_HOST')) {
-        $url = WP_DOCKER_HOST;
-      } else {
-        $url = site_url();
-      }
-    } else {
-      $url = site_url();
-    }
+  /* HELPER FUNCTIONS */
 
-    return $url;
-  }
-
+  /**
+   * Get the season by name
+   * 
+   * @param string $name
+   * @return int 
+   * @since 1.0
+   */
   public function getTermSeasonIdByName($name)
   {
     $term = get_term_by('name', $name, 'sp_season');
@@ -989,6 +992,13 @@ class Sportspress
     }
   }
 
+  /**
+   * Get the term league id by name
+   * 
+   * @param string $cometition
+   * @return int|bool
+   * @since 1.0
+   */
   public function getTermLeagueIdByName($competition)
   {
     $terms = get_terms([
@@ -1012,6 +1022,14 @@ class Sportspress
     }
   }
 
+  /**
+   * Create league
+   * 
+   * @param string $name
+   * @param string $competition
+   * @return int 
+   * @since 1.0
+   */
   public function createLeague($name, $competition)
   {
     $new_term = wp_insert_term(
@@ -1036,21 +1054,17 @@ class Sportspress
     }
   }
 
+  /**
+   * Get the post id by meta value search
+   * 
+   * @param string $post_type
+   * @param string $meta_key
+   * @param string $meta_value
+   * @return int|bool
+   * @since 1.0
+   */
   public function getPostIdByMetaValue($post_type, $meta_key, $meta_value)
   {
-    // $sp_player_ids = get_posts(array(
-    //   'post_type'      => $post_type,
-    //   'post_status'    => 'any',
-    //   'fields'         => 'ids',
-    //   'posts_per_page' => -1,
-    //   'meta_query'     => array(
-    //     array(
-    //       'key'     => $meta_key,
-    //       'compare' => '=',
-    //       'value' => $meta_value
-    //     )
-    //   ),
-    // ));
     global $wpdb;
     $sp_player_ids = $wpdb->get_col(
       $wpdb->prepare(
@@ -1073,7 +1087,14 @@ class Sportspress
     return !empty($sp_player_ids) ? $sp_player_ids[0] : false;
   }
 
-  // Return term id if term name exist. If term not exist then create new and return id
+  /**
+   * Return term id if term name exist. If term not exist then create new and return id
+   * 
+   * @param string $name
+   * @param string $taxonomy
+   * @return int|string
+   * @since 1.0
+   */
   public function getTermId($name, $taxonomy)
   {
     $term = get_term_by('name', $name, $taxonomy);
@@ -1101,6 +1122,14 @@ class Sportspress
     }
   }
 
+  /**
+   * Download image and attach to post
+   * 
+   * @param string $image_url
+   * @param int $post_id
+   * @return int
+   * @since 1.0
+   */
   public function createAttachmentFromUrl($image_url, $post_id = 0)
   {
     // Include required WordPress core files
