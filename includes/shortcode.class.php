@@ -90,7 +90,7 @@ class Shortcode
       'competition_id' => ''
     ), $atts, 'team_ladder');
 
-    $competition_id = $atts['competition_id'];
+    $competition_id = esc_attr($atts['competition_id']);
 
     if (empty($competition_id)) {
       $terms = get_the_terms(get_the_ID(), 'sp_league');
@@ -139,12 +139,19 @@ class Shortcode
       'entity_id' => '',
       'season' => '',
       'competition_id' => '',
-      'team_id' => ''
+      'team_id' => '',
+      'type' => 'results',
     ), $atts, 'team_events');
 
     ob_start();
 
-    $data = $rea->api->getData($atts);
+    $data = $rea->api->getData(array(
+      'season' => esc_attr($atts['season']),
+      'entityId' => intVal($atts['entity_id']),
+      'competition' => esc_attr($atts['competition_id']),
+      'team' => esc_attr($atts['team_id']),
+      'type' => esc_attr($atts['type']),
+    ));
 
     if (!empty($data)) {
       require(REA_VIEWS_ROOT_DIR . 'team-events-view.php');
