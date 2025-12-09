@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Plugin Name: RugbyExplorer API
- * Description: RugbyExplorer API
+ * Plugin Name: Foco Sport - RugbyExplorer API
  * Version: 1.0
- * Author: focosme
+ * Author: FOCO SPORT
+ * Description: Main plugin used for integrationg RugbyExplorer API to the site
  * Author URI: https://focosme.com/
  * Text Domain: rugbyexplorer-api
  * Domain Path: /languages/
