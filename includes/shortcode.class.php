@@ -99,18 +99,29 @@ class Shortcode
       }
     }
 
-    ob_start();
-    $term_id = 0;
-    if (is_numeric($competition_id)) {
-      $term_id = $competition_id;
-    } else {
-      $term_id = $rea->sportspress->getTermLeagueIdByName($competition_id);
+    // $term_id = 0;
+    // if (is_numeric($competition_id)) {
+    //   $term_id = $competition_id;
+    // } else {
+    //   $term_id = $rea->sportspress->getTermLeagueIdByName($competition_id);
+    // }
+    // $data = get_term_meta($term_id, 'ladder_data', true);
+
+    // Get from option table
+    $data = get_option('ladder_data_' . $competition_id);
+
+    // If empty then fetch via api then save to option table
+    if (empty($data)) {
+      $data = $rea->api->getCompetitionLadderData(array(
+        'competition_id' => $competition_id
+      ));
+
+      if (!empty($data)) {
+        update_option('ladder_data_' . $competition_id, $data);
+      }
     }
 
-    // $data = get_term_meta($term_id, 'ladder_data', true);
-    $data = $rea->api->getCompetitionLadderData(array(
-      'competition_id' => $competition_id
-    ));
+    ob_start();
 
     if (!empty($data['ladderPools'])) {
       require(REA_VIEWS_ROOT_DIR . 'team-ladder-view.php');
