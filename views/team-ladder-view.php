@@ -1,8 +1,4 @@
 <?php
-// echo '<pre>';
-// print_r($data);
-// echo '</pre>';
-
 foreach ($data['ladderPools'] as $pool) {
 
   if ($pool['poolName'] != 'pool-default') {

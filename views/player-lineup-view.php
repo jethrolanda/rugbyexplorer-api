@@ -1,12 +1,4 @@
 <?php
-echo '<pre>';
-// print_r($data);
-// print_r($data['allMatchStatsSummary']['lineUp']['players']);
-
-// print_r($data['allMatchStatsSummary']['lineUp']['coaches']);
-// print_r($data['allMatchStatsSummary']['referees']);
-
-echo '</pre>';
 $players = $data['allMatchStatsSummary']['lineUp']['players'];
 usort($players, function ($a, $b) {
   return $a['position'] <=> $b['position']; // ascending

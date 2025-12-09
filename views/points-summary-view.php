@@ -1,8 +1,4 @@
 <?php
-// echo '<pre>';
-// print_r($data['allMatchStatsSummary']['pointsSummary']['tries']);
-// print_r($data['allMatchStatsSummary']['pointsSummary']['conversions']);
-// echo '</pre>';
 $tries = $data['allMatchStatsSummary']['pointsSummary']['tries'];
 $conversions = $data['allMatchStatsSummary']['pointsSummary']['conversions'];
 ?>
