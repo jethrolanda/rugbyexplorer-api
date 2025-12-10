@@ -113,8 +113,11 @@ class Cron
           'competition_id' => $competition_id
         ));
         $term_id = $rea->sportspress->getTermLeagueIdByName($competition_id);
-        if (!empty($competition_data) && $term_id) {
-          update_term_meta($term_id, 'ladder_data', $competition_data);
+        if (!empty($competition_data)) {
+          if ($term_id) {
+            update_term_meta($term_id, 'ladder_data', $competition_data);
+          }
+
           update_option('ladder_data_' . $competition_id, $competition_data);
         }
       }
