@@ -25,7 +25,10 @@ class Sportspress
    *
    * @since 1.0.0
    */
-  public function __construct() {}
+  public function __construct()
+  {
+    add_filter('the_title', array($this, 'remove_player_squad_number_single_player_page'), 20, 2);
+  }
 
   /**
    * Main Instance.
@@ -1166,5 +1169,24 @@ class Sportspress
     set_post_thumbnail($post_id, $attachment_id);
 
     return $attachment_id;
+  }
+
+  /**
+   * Remove player squad number from single player page title
+   * 
+   * @param string $title
+   * @param int|null $id
+   * @return string
+   * @since 1.0
+   */
+  public function remove_player_squad_number_single_player_page($title, $id = null)
+  {
+    if (! is_admin() && in_the_loop() && $id == get_the_ID()) {
+      if (is_singular('sp_player')) {
+        $raw_title = get_post_field('post_title', $id);
+        return $raw_title;
+      }
+    }
+    return $title;
   }
 }
