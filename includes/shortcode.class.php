@@ -249,7 +249,8 @@ class Shortcode
 
     if ($player_id && $games_played) {
       echo "<div class='sportspress'>";
-      echo $data[-1]['a'] ?? $games_played;
+      // echo $data[-1]['a'] ?? $games_played;
+      echo $games_played;
       echo "</div>";
     }
 
