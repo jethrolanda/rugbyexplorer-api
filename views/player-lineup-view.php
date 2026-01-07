@@ -10,12 +10,6 @@ $is_home = false;
 if (!empty($fixture_item)) {
   $is_home = in_array($fixture_item['homeTeam']['teamId'], $rea->rugbyexplorer->get_team_ids());
 }
-error_log(print_r($data['getFixtureItem'], true));
-error_log(print_r($is_home, true));
-
-error_log(print_r($rea->rugbyexplorer->get_team_ids(), true));
-
-
 
 ?>
 <div class="elementor-widget-heading">
