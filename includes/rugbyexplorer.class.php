@@ -135,4 +135,18 @@ class RugbyExplorer
       ));
     }
   }
+
+  public function get_team_ids()
+  {
+    $settings = get_option('rugbyexplorer_options');
+    $teams = isset($settings['rugbyexplorer_field_club_teams']) ? $settings['rugbyexplorer_field_club_teams'] : array();
+    $club_ids = array();
+    if (!empty($teams)) {
+      foreach ($teams as $team) {
+        $club_ids[] = $team['team_id'];
+      }
+    }
+
+    return $club_ids;
+  }
 }
