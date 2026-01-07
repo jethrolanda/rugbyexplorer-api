@@ -342,6 +342,7 @@ class Sportspress
           // Delete this player if not under the club teams
           if ($is_home != $player['isHome']) {
             wp_delete_post($pid, true);
+            continue;
           }
 
           // League
@@ -374,7 +375,7 @@ class Sportspress
           continue;
         }
 
-        // Skip adding this player if not under the club teams
+        // Skip adding if this player if not under the club teams
         if ($is_home != $player['isHome']) {
           continue;
         }
@@ -456,6 +457,13 @@ class Sportspress
         // Skip adding if staff already exist
         $staff_id = $this->getPostIdByMetaValue('sp_staff', 'coach_id', $coach['id']);
         if ($staff_id) {
+
+          // Delete this staff if not under the club teams
+          if ($is_home != $coach['isHome']) {
+            wp_delete_post($staff_id, true);
+            continue;
+          }
+
           // League
           $league_ids = wp_get_post_terms($staff_id, 'sp_season', ['fields' => 'ids']);
           $league_ids[] = $sportspressLeagueId;
@@ -467,6 +475,11 @@ class Sportspress
           $season_ids[] = $sportspressSeasonId;
           $season_ids = array_unique($season_ids);
           wp_set_object_terms($staff_id, $season_ids, 'sp_season');
+          continue;
+        }
+
+        // Skip adding if this staff if not under the club teams
+        if ($is_home != $coach['isHome']) {
           continue;
         }
 
