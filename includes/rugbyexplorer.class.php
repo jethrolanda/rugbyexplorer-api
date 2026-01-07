@@ -165,6 +165,16 @@ class RugbyExplorer
    */
   public function get_position_name($position)
   {
+    // 6 and 7 are both flankers
+    if ($position == '7') {
+      $position = '6';
+    }
+
+    // 16 and up are reserves
+    if ($position >= '16') {
+      $position = '16';
+    }
+
     $terms = get_terms([
       'taxonomy'   => 'sp_position',
       'hide_empty' => false,
