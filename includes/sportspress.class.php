@@ -184,6 +184,7 @@ class Sportspress
         // GraphQL Request Error: cURL error 28: Failed to connect to rugby-au-cms.graphcdn.app port 443 after 10001 ms: Timeout was reached
         // GraphQL Error: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
         $fixture_data = $rea->api->getMatchDetails(array('fixture_id' => $game['id']));
+        $fixture_item = $fixture_data['getFixtureItem'];
         $substitutes = $fixture_data['allMatchStatsSummary']['lineUp']['substitutes'];
         $substitutes = is_array($substitutes) ? $substitutes : array();
         $players = $fixture_data['allMatchStatsSummary']['lineUp']['players'];
@@ -191,15 +192,16 @@ class Sportspress
         $players = array_merge($substitutes, $players);
         $coaches = $fixture_data['allMatchStatsSummary']['lineUp']['coaches'];
         $referees = $fixture_data['allMatchStatsSummary']['referees'];
+        $is_home = $fixture_item['homeTeam']['teamId'] == $team ? true : false;
 
         // Create Players
-        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players);
+        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home);
 
         // Create staff
-        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches);
+        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home);
 
         // Create official
-        $this->createOfficial($game['id'], $post_id, $referees);
+        $this->createOfficial($game['id'], $post_id, $referees, $is_home);
 
         // Add teams
         delete_post_meta($post_id, 'sp_team');
@@ -319,10 +321,11 @@ class Sportspress
    * @param array $team_ids
    * @param int $sportspressSeasonId
    * @param int $sportspressLeagueId
-   * @param array $players 
+   * @param array $players
+   * @param array $is_home
    * @since 1.0
    */
-  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players)
+  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home)
   {
 
     if (!empty($players)) {
@@ -335,6 +338,12 @@ class Sportspress
         // Skip adding if player already exist
         $pid = $this->getPostIdByMetaValue('sp_player', 'player_id', $player_id);
         if ($pid) {
+
+          // Delete this player if not under the club teams
+          if ($is_home != $player['isHome']) {
+            wp_delete_post($pid, true);
+          }
+
           // League
           $league_ids = wp_get_post_terms($pid, 'sp_league', array('fields' => 'ids'));
           $league_ids[] = $sportspressLeagueId;
@@ -362,6 +371,11 @@ class Sportspress
             // update current team
             sp_update_post_meta_recursive($pid, 'sp_current_team', array($team_id));
           }
+          continue;
+        }
+
+        // Skip adding this player if not under the club teams
+        if ($is_home != $player['isHome']) {
           continue;
         }
 
@@ -430,9 +444,10 @@ class Sportspress
    * @param int $sportspressSeasonId
    * @param int $sportspressLeagueId
    * @param array $coaches 
+   * @param array $is_home 
    * @since 1.0
    */
-  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches)
+  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home)
   {
     $job_id = $this->getTermId('Coach', 'sp_role');
 
@@ -499,9 +514,10 @@ class Sportspress
    * @param int $matchId 
    * @param int $event_id 
    * @param array $referees 
+   * @param array $is_home
    * @since 1.0
    */
-  public function createOfficial($matchId,  $event_id, $referees)
+  public function createOfficial($matchId,  $event_id, $referees, $is_home)
   {
 
     $officials = array();
