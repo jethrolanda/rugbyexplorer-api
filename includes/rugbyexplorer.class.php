@@ -136,6 +136,12 @@ class RugbyExplorer
     }
   }
 
+  /**
+   * Get all team club team ids
+   * 
+   * @return array
+   * @since 1.0
+   */
   public function get_team_ids()
   {
     $settings = get_option('rugbyexplorer_options');
@@ -150,7 +156,13 @@ class RugbyExplorer
     return $club_ids;
   }
 
-
+  /**
+   * Get position name by its order number
+   *
+   * @param Int $position Oder Number
+   * @return string
+   * @since 1.0
+   */
   public function get_position_name($position)
   {
     $terms = get_terms([
