@@ -32,7 +32,25 @@ if (!empty($fixture_item)) {
         if ($player['isHome'] == $is_home) { ?>
           <div style="padding: 10px; display: flex; align-items: center; ">
             <span style="font-weight: 600; font-size: 1.25rem"><?php echo $player['position']; ?></span>
-            <span style="margin-left: 20px;"><?php echo $player['name']; ?><?php echo $player['captainType'] == "captain" ? " (C)" : ""; ?></span>
+            <?php
+            if ($player['captainType']) { ?>
+              <span style="margin-left: 20px;"><?php echo $player['name']; ?>
+                <?php
+                if ($player['captainType'] == "captain") {
+                  echo " (C)";
+                } else if ($player['captainType'] == "vice-captain") {
+                  echo " (VC)";
+                }
+                if ($player['frontRow']) {
+                  echo " (FR)";
+                }
+                ?>
+              </span>
+            <?php
+            }
+            ?>
+
+            vice-captain
           </div>
       <?php
         }

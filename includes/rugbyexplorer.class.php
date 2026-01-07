@@ -149,4 +149,25 @@ class RugbyExplorer
 
     return $club_ids;
   }
+
+
+  public function get_position_name($position)
+  {
+    $terms = get_terms([
+      'taxonomy'   => 'sp_position',
+      'hide_empty' => false,
+      'meta_query' => [
+        [
+          'key'     => 'sp_order',
+          'value'   => $position,
+          'compare' => '='
+        ]
+      ]
+    ]);
+    $position_name = "";
+    if (! empty($terms) && ! is_wp_error($terms)) {
+      $position_name = $terms[0]->name;
+    }
+    return $position_name;
+  }
 }
