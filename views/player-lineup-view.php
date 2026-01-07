@@ -14,7 +14,7 @@ if (!empty($fixture_item)) {
 ?>
 <div class="elementor-widget-heading">
   <div class="container" style="display:flex; margin-bottom: 20px; justify-content: center;">
-    <div style="display: flex; flex-direction: column; align-items: center;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
       <?php if ($is_home) { ?>
         <img width="100" height="100" src="<?php echo $data['getFixtureItem']['homeTeam']['crest']; ?>" alt="<?php echo $data['getFixtureItem']['homeTeam']['name']; ?>">
         <b><?php echo $data['getFixtureItem']['homeTeam']['name']; ?></b>
@@ -40,19 +40,17 @@ if (!empty($fixture_item)) {
     </div>
   </div>
   <h2 class="elementor-heading-title elementor-size-default" style="text-align: center; font-size: 22px; margin-top: 20px;">Substitutes</h2>
-  <div class="container" style="display:flex; justify-content: center;">
-    <div>
-      <?php
-      foreach ($data['allMatchStatsSummary']['lineUp']['substitutes'] as $sub) {
-        if ($sub['isHome'] == $is_home) { ?>
-          <div style="padding: 10px; display: flex; align-items: center; justify-content: flex-end; ">
-            <span style="font-weight: 600; font-size: 1.25rem"><?php echo $sub['position']; ?></span>
-            <span style="margin-left: 20px;"><?php echo $sub['name']; ?></span>
-          </div>
-      <?php
-        }
-      } ?>
-    </div>
+  <div class="container" style="display:flex; justify-content: center; flex-direction: column; align-items: center;">
+    <?php
+    foreach ($data['allMatchStatsSummary']['lineUp']['substitutes'] as $sub) {
+      if ($sub['isHome'] == $is_home) { ?>
+        <div style="padding: 10px; display: flex; align-items: center; justify-content: flex-end; ">
+          <span style="font-weight: 600; font-size: 1.25rem"><?php echo $sub['position']; ?></span>
+          <span style="margin-left: 20px;"><?php echo $sub['name']; ?></span>
+        </div>
+    <?php
+      }
+    } ?>
   </div>
   <h2 class="elementor-heading-title elementor-size-default" style="text-align: center; font-size: 22px; margin-top: 20px;">Coaches</h2>
   <div class="container" style="display:flex; justify-content: center;">
