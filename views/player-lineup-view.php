@@ -40,17 +40,19 @@ if (!empty($fixture_item)) {
     </div>
   </div>
   <h2 class="elementor-heading-title elementor-size-default" style="text-align: center; font-size: 22px; margin-top: 20px;">Substitutes</h2>
-  <div class="container" style="display:flex; justify-content: center; flex-direction: column; align-items: center;">
-    <?php
-    foreach ($data['allMatchStatsSummary']['lineUp']['substitutes'] as $sub) {
-      if ($sub['isHome'] == $is_home) { ?>
-        <div style="padding: 10px; display: flex; align-items: center; justify-content: flex-end; ">
-          <span style="font-weight: 600; font-size: 1.25rem"><?php echo $sub['position']; ?></span>
-          <span style="margin-left: 20px;"><?php echo $sub['name']; ?></span>
-        </div>
-    <?php
-      }
-    } ?>
+  <div class="container" style="display:flex; justify-content: center;">
+    <div>
+      <?php
+      foreach ($data['allMatchStatsSummary']['lineUp']['substitutes'] as $sub) {
+        if ($sub['isHome'] == $is_home) { ?>
+          <div style="padding: 10px; display: flex; align-items: center;">
+            <span style="font-weight: 600; font-size: 1.25rem"><?php echo $sub['position']; ?></span>
+            <span style="margin-left: 20px;"><?php echo $sub['name']; ?></span>
+          </div>
+      <?php
+        }
+      } ?>
+    </div>
   </div>
   <h2 class="elementor-heading-title elementor-size-default" style="text-align: center; font-size: 22px; margin-top: 20px;">Coaches</h2>
   <div class="container" style="display:flex; justify-content: center;">
@@ -58,7 +60,7 @@ if (!empty($fixture_item)) {
       <?php
       foreach ($data['allMatchStatsSummary']['lineUp']['coaches'] as $coach) {
         if ($coach['isHome'] == $is_home) { ?>
-          <div style="padding: 10px; display: flex; align-items: center; justify-content: flex-end; ">
+          <div style="padding: 10px; display: flex; align-items: center;">
             <span><?php echo $coach['name']; ?></span>
           </div>
       <?php
@@ -70,7 +72,7 @@ if (!empty($fixture_item)) {
   <div class="container" style="display:flex; gap: 10px; flex-direction: column; align-items: center;">
     <?php
     foreach ($data['allMatchStatsSummary']['referees'] as $ref) { ?>
-      <div style="padding: 10px; display: flex; align-items: center; justify-content: flex-end; ">
+      <div style="padding: 10px; display: flex; align-items: center;">
         <span style="margin-right: 20px; font-weight: 600;"><?php echo $ref['type']; ?></span>
         <span><?php echo $ref['refereeName']; ?></span>
       </div>
