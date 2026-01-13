@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Button, Modal, Flex, Form, Input, Select, notification } from "antd";
 import { TeamOutlined } from "@ant-design/icons";
 
-const AddTeam = ({ setClubTeams, entityOptions }) => {
-  const [form] = Form.useForm();
+const AddTeam = ({ setClubTeams, entityOptions, form }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [api, contextHolder] = notification.useNotification();
@@ -97,11 +96,11 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
         width={800}
       >
         <Form
-          form={form}
           name="rugbyexplorer_field_club_teams"
           labelCol={{ span: 6 }}
           wrapperCol={{ span: 18 }}
           onFinish={onFinish}
+          form={form}
         >
           <Form.Item
             label="Name"

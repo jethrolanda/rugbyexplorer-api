@@ -89,30 +89,48 @@ const ImportActions = () => {
       const teams = Object.entries(sorted || []);
 
       for (const [key, team] of teams) {
-        const formData = new FormData();
-        formData.append("action", "rugbyexplorer_api");
-        formData.append("season", team?.season);
-        formData.append("competition_id", team?.competition_id);
-        formData.append("team_id", team?.team_id);
-        formData.append("entity_id", team?.entity_id);
-        formData.append("entity_type", team?.entity_type);
-
         try {
-          const res = await fetch(rugbyexplorer_params.ajax_url, {
-            method: "POST",
-            headers: { "X-WP-Nonce": rugbyexplorer_params.nonce },
-            body: formData
-          });
+          let skip = 0;
+          let event_status = [];
+          while (true) {
+            const formData = new FormData();
+            formData.append("action", "rugbyexplorer_api");
+            formData.append("season", team?.season);
+            formData.append("competition_id", team?.competition_id);
+            formData.append("team_id", team?.team_id);
+            formData.append("entity_id", team?.entity_id);
+            formData.append("entity_type", team?.entity_type);
+            formData.append("skip", skip);
 
-          const data = await res.json();
+            const res = await fetch(rugbyexplorer_params.ajax_url, {
+              method: "POST",
+              headers: { "X-WP-Nonce": rugbyexplorer_params.nonce },
+              body: formData
+            });
+
+            const data = await res.json();
+            console.log(data);
+            if (data?.data?.total == 0 || data?.status !== "success") {
+              break;
+            }
+
+            // check next batch
+            event_status.push(data?.data?.event_status);
+            skip += 20;
+          }
 
           setProcessedTeam((prev) => prev + 1);
-          if (data.status === "success") {
-            setEventStatus((prev) => [
-              ...prev,
-              { name: team?.name, stats: data?.data?.event_status }
-            ]);
-          }
+          const total = event_status.reduce((acc, curr) => {
+            Object.keys(curr).forEach((key) => {
+              acc[key] = (acc[key] || 0) + curr[key];
+            });
+            return acc;
+          }, {});
+
+          setEventStatus((prev) => [
+            ...prev,
+            { name: team?.name, stats: total }
+          ]);
         } catch (err) {
           console.error("Error fetching team", team?.name, err);
         }

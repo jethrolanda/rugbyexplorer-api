@@ -72,6 +72,7 @@ class RugbyExplorer
       $season         = $_POST['season'] ?? '';
       $entity_id      = $_POST['entity_id'] ?? '';
       $entity_type    = $_POST['entity_type'] ?? '';
+      $skip           = $_POST['skip'] ?? 0;
       $status = array();
 
       if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
@@ -83,18 +84,11 @@ class RugbyExplorer
           'entityId' => (int) $entity_id,
           'entityType' => $entity_type,
           'type' =>  'fixtures',
-          'skip' => 0
+          'skip' => (int)$skip
         );
-        $data1 = array();
-        while (true) {
-          $res1 = $rea->api->getData($args1);
-          if (empty($res1)) {
-            break;
-          }
-          $data1 = array_merge($data1, $res1);
-          $args1['skip'] += 20;
-        }
-        $status = array_merge($status, $rea->sportspress->createEvents($data1, $args1));
+
+        $res1 = $rea->api->getData($args1);
+        $status = array_merge($status, $rea->sportspress->createEvents($res1, $args1));
 
         // Recent Results
         $args2 = array(
@@ -104,19 +98,11 @@ class RugbyExplorer
           'entityId' => (int) $entity_id,
           'entityType' => $entity_type,
           'type' =>  'results',
-          'skip' => 0
+          'skip' => (int)$skip
         );
-        $data2 = array();
 
-        while (true) {
-          $res2 = $rea->api->getData($args2);
-          if (empty($res2)) {
-            break;
-          }
-          $data2 = array_merge($data2, $res2);
-          $args2['skip'] += 20;
-        }
-        $status = array_merge($status, $rea->sportspress->createEvents($data2, $args2));
+        $res2 = $rea->api->getData($args2);
+        $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
 
         // Save team ladder
         $competition_data = $rea->api->getCompetitionLadderData(array(
@@ -142,6 +128,7 @@ class RugbyExplorer
         'status' => 'success',
         'data' => array(
           'event_status'  => array_merge($status, array('time' => round($execution_time, 2))),
+          'total' => count($res1) + count($res2),
         ),
       ));
     } catch (\Exception $e) {

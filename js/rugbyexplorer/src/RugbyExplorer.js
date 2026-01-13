@@ -334,6 +334,7 @@ const App = () => {
             params={rugbyexplorer_params}
             setClubTeams={setClubTeams}
             entityOptions={entityOptions}
+            form={form}
           />
           <TeamTable data={clubTeams} setClubTeams={setClubTeams} />
         </Col>
