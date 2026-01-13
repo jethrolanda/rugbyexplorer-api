@@ -71,6 +71,7 @@ class RugbyExplorer
       $team_id        = $_POST['team_id'] ?? '';
       $season         = $_POST['season'] ?? '';
       $entity_id      = $_POST['entity_id'] ?? '';
+      $entity_type    = $_POST['entity_type'] ?? '';
       $status = array();
 
       if (!empty($competition_id) && !empty($team_id) && !empty($season) && !empty($entity_id)) {
@@ -80,6 +81,7 @@ class RugbyExplorer
           'competition' => $competition_id,
           'team' => $team_id,
           'entityId' => (int) $entity_id,
+          'entity_type' => $entity_type,
           'type' =>  'fixtures'
         );
 
@@ -94,6 +96,7 @@ class RugbyExplorer
           'competition' => $competition_id,
           'team' => $team_id,
           'entityId' => (int) $entity_id,
+          'entityType' => $entity_type,
           'type' =>  'results'
         );
 

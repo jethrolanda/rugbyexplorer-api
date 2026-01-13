@@ -55,6 +55,7 @@ class Api
     //   'competition' => 'mLGoqgHnacX2AnmgD',
     //   'team' => 'DZJhdynaY4wSDBQpQ',
     //   'entityId' => '53371',
+    //   'entityType' => 'club',
     //   'type' => 'fixtures' or 'results'
     // );
     extract($args);
@@ -77,7 +78,7 @@ class Api
         "skip" => 0,
         "limit" => 50,
         "entityId" => $entityId,
-        "entityType" => "club"
+        "entityType" => $entityType
       ],
       "query" => "query EntityFixturesAndResults(\$entityId: Int, \$entityType: String, \$season: String, \$comps: [CompInput], \$teams: [String], \$type: String, \$skip: Int, \$limit: Int) {
       getEntityFixturesAndResults(

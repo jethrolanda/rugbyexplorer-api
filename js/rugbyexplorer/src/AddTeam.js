@@ -65,8 +65,7 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
 
   useEffect(() => {
     form.setFieldsValue({
-      rugbyexplorer_field_club_teams:
-        rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? []
+      entity_type: "club"
     });
 
     if (rugbyexplorer_params?.entity_types.length > 0) {
@@ -137,7 +136,7 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
             name="entity_type"
             rules={[{ required: true, message: "Please select entity type!" }]}
           >
-            <Select defaultValue="club" options={entityTypeOptions} />
+            <Select options={entityTypeOptions} />
           </Form.Item>
           <Form.Item
             label="Competition ID"

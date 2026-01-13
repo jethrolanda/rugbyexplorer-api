@@ -61,6 +61,11 @@ export default function TeamTable({ data, setClubTeams }) {
       key: "entity_id"
     },
     {
+      title: "Entity Type",
+      dataIndex: "entity_type",
+      key: "entity_type"
+    },
+    {
       title: "Competition ID",
       dataIndex: "competition_id",
       key: "competition_id"
