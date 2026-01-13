@@ -57,12 +57,10 @@ class Api
     //   'entityId' => '53371',
     //   'entityType' => 'club',
     //   'type' => 'fixtures' or 'results'
+    //   'skip' => 0, // 20, 40 etc
     // );
     extract($args);
 
-    if ($team === 'All') {
-      $team = '';
-    }
     $body = [
       "operationName" => "EntityFixturesAndResults",
       "variables" => [
@@ -73,10 +71,10 @@ class Api
             "sourceType" => "2"
           ]
         ],
-        "teams" => [$team],
+        "teams" => $team == 'All' ? array() : array($team),
         "type" => $type,
-        "skip" => 0,
-        "limit" => 50,
+        "skip" => $skip,
+        "limit" => 20,
         "entityId" => $entityId,
         "entityType" => $entityType
       ],

@@ -82,13 +82,22 @@ class RugbyExplorer
           'team' => $team_id,
           'entityId' => (int) $entity_id,
           'entityType' => $entity_type,
-          'type' =>  'fixtures'
+          'type' =>  'fixtures',
+          'skip' => 0
         );
 
-        $res1 = $rea->api->getData($args1);
-        if (!empty($res1)) {
+        while (true) {
+          $res1 = $rea->api->getData($args1);
+          if (empty($res1)) {
+            break;
+          }
           $status = array_merge($status, $rea->sportspress->createEvents($res1, $args1));
+          $args1['skip'] += 20;
         }
+        // $res1 = $rea->api->getData($args1);
+        // if (!empty($res1)) {
+        //   $status = array_merge($status, $rea->sportspress->createEvents($res1, $args1));
+        // }
 
         // Recent Results
         $args2 = array(
@@ -97,13 +106,23 @@ class RugbyExplorer
           'team' => $team_id,
           'entityId' => (int) $entity_id,
           'entityType' => $entity_type,
-          'type' =>  'results'
+          'type' =>  'results',
+          'skip' => 0
         );
 
-        $res2 = $rea->api->getData($args2);
-        if (!empty($res2)) {
+        while (true) {
+          $res2 = $rea->api->getData($args2);
+          error_log(print_r(count($res2), true));
+          if (empty($res2)) {
+            break;
+          }
           $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
+          $args2['skip'] += 20;
         }
+        // $res2 = $rea->api->getData($args2);
+        // if (!empty($res2)) {
+        //   $status = array_merge($status, $rea->sportspress->createEvents($res2, $args2));
+        // }
 
         // Save team ladder
         $competition_data = $rea->api->getCompetitionLadderData(array(
