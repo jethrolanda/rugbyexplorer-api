@@ -22,6 +22,9 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
   };
 
   const onFinish = async (values) => {
+    if (values.team_id === undefined) {
+      values.team_id = "All";
+    }
     setLoading(true);
     const formData = new FormData();
     formData.append("action", "create_team");
@@ -134,11 +137,7 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Team ID"
-            name="team_id"
-            rules={[{ required: true, message: "Please input team ID!" }]}
-          >
+          <Form.Item label="Team ID" name="team_id">
             <Input />
           </Form.Item>
         </Form>
