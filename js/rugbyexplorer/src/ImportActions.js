@@ -95,6 +95,7 @@ const ImportActions = () => {
         formData.append("competition_id", team?.competition_id);
         formData.append("team_id", team?.team_id);
         formData.append("entity_id", team?.entity_id);
+        formData.append("entity_type", team?.entity_type);
 
         try {
           const res = await fetch(rugbyexplorer_params.ajax_url, {
