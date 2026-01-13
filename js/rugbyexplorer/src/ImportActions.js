@@ -127,6 +127,9 @@ const ImportActions = () => {
             return acc;
           }, {});
 
+          // convert seconds → minutes
+          total.time = total?.time?.toFixed(2);
+
           setEventStatus((prev) => [
             ...prev,
             { name: team?.name, stats: total }

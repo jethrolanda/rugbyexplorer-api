@@ -54,7 +54,7 @@ class Shortcode
    */
   public function player_lineup($atts)
   {
-
+    global $rea;
     $atts = shortcode_atts(array(
       'season_id' => '',
       'competition_id' => ''
@@ -67,7 +67,16 @@ class Shortcode
     $data = get_post_meta(get_the_ID(), 'rugby_explorer_match_details_data', true);
 
     if (!empty($data['allMatchStatsSummary'])) {
-      require(REA_VIEWS_ROOT_DIR . 'player-lineup-view.php');
+      $fixture_item = $data['getFixtureItem'];
+
+      if (
+        in_array($fixture_item['homeTeam']['teamId'], $rea->rugbyexplorer->get_team_ids()) ||
+        in_array($fixture_item['awayTeam']['teamId'], $rea->rugbyexplorer->get_team_ids())
+      ) {
+        require(REA_VIEWS_ROOT_DIR . 'player-lineup-view.php');
+      } else {
+        require(REA_VIEWS_ROOT_DIR . 'competition-only/player-line-up-view.php');
+      }
     }
 
     // content
@@ -174,6 +183,8 @@ class Shortcode
    */
   public function points_summary($atts)
   {
+
+    global $rea;
     $atts = shortcode_atts(array(
       'id' => uniqid(),
     ), $atts, 'points_summary');
@@ -187,7 +198,15 @@ class Shortcode
     $data = get_post_meta(get_the_ID(), 'rugby_explorer_match_details_data', true);
 
     if (!empty($data)) {
-      require(REA_VIEWS_ROOT_DIR . 'points-summary-view.php');
+      $fixture_item = $data['getFixtureItem'];
+      if (
+        in_array($fixture_item['homeTeam']['teamId'], $rea->rugbyexplorer->get_team_ids()) ||
+        in_array($fixture_item['awayTeam']['teamId'], $rea->rugbyexplorer->get_team_ids())
+      ) {
+        require(REA_VIEWS_ROOT_DIR . 'points-summary-view.php');
+      } else {
+        require(REA_VIEWS_ROOT_DIR . 'competition-only/points-summary-view.php');
+      }
     }
 
     // content

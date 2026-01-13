@@ -4,9 +4,8 @@ $players = $data['allMatchStatsSummary']['lineUp']['players'];
 usort($players, function ($a, $b) {
   return $a['position'] <=> $b['position']; // ascending
 });
-$fixture_item = $data['getFixtureItem'];
-$is_home = false;
 
+$is_home = false;
 if (!empty($fixture_item)) {
   $is_home = in_array($fixture_item['homeTeam']['teamId'], $rea->rugbyexplorer->get_team_ids());
 }

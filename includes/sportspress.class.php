@@ -195,13 +195,13 @@ class Sportspress
         $is_home = $fixture_item['homeTeam']['teamId'] == $team ? true : false;
 
         // Create Players
-        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home);
+        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team);
 
         // Create staff
-        $this->createStaff($game['id'], $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home);
+        $this->createStaff($team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team);
 
         // Create official
-        $this->createOfficial($game['id'], $post_id, $referees, $is_home);
+        $this->createOfficial($post_id, $referees);
 
         // Add teams
         delete_post_meta($post_id, 'sp_team');
@@ -323,9 +323,10 @@ class Sportspress
    * @param int $sportspressLeagueId
    * @param array $players
    * @param array $is_home
+   * @param string $team
    * @since 1.0
    */
-  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home)
+  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team)
   {
 
     if (!empty($players)) {
@@ -340,7 +341,7 @@ class Sportspress
         if ($pid) {
 
           // Delete this player if not under the club teams
-          if ($is_home != $player['isHome']) {
+          if ($is_home != $player['isHome'] && $team !== 'All') {
             wp_delete_post($pid, true);
             continue;
           }
@@ -376,7 +377,7 @@ class Sportspress
         }
 
         // Skip adding if this player if not under the club teams
-        if ($is_home != $player['isHome']) {
+        if ($is_home != $player['isHome'] && $team !== 'All') {
           continue;
         }
 
@@ -446,9 +447,10 @@ class Sportspress
    * @param int $sportspressLeagueId
    * @param array $coaches 
    * @param array $is_home 
+   * @param string $team
    * @since 1.0
    */
-  public function createStaff($matchId, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home)
+  public function createStaff($team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team)
   {
     $job_id = $this->getTermId('Coach', 'sp_role');
 
@@ -459,7 +461,7 @@ class Sportspress
         if ($staff_id) {
 
           // Delete this staff if not under the club teams
-          if ($is_home != $coach['isHome']) {
+          if ($is_home != $coach['isHome'] && $team !== 'All') {
             wp_delete_post($staff_id, true);
             continue;
           }
@@ -479,7 +481,7 @@ class Sportspress
         }
 
         // Skip adding if this staff if not under the club teams
-        if ($is_home != $coach['isHome']) {
+        if ($is_home != $coach['isHome'] && $team !== 'All') {
           continue;
         }
 
@@ -523,14 +525,12 @@ class Sportspress
 
   /**
    * Create official. Check if official ID does not exist then create else only update.
-   * 
-   * @param int $matchId 
+   *  
    * @param int $event_id 
-   * @param array $referees 
-   * @param array $is_home
+   * @param array $referees  
    * @since 1.0
    */
-  public function createOfficial($matchId,  $event_id, $referees, $is_home)
+  public function createOfficial($event_id, $referees)
   {
 
     $officials = array();
