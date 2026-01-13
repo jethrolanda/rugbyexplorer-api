@@ -59,6 +59,9 @@ class Api
     // );
     extract($args);
 
+    if ($team === 'All') {
+      $team = '';
+    }
     $body = [
       "operationName" => "EntityFixturesAndResults",
       "variables" => [
