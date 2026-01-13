@@ -75,7 +75,7 @@ class Api
         "teams" => [$team],
         "type" => $type,
         "skip" => 0,
-        "limit" => 20,
+        "limit" => 50,
         "entityId" => $entityId,
         "entityType" => "club"
       ],

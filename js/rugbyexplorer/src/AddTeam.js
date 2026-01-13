@@ -13,6 +13,9 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
       description
     });
   };
+  const [entityTypeOptions, setEntityTypeOptions] = useState(
+    rugbyexplorer_params?.entity_types ?? []
+  );
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -65,6 +68,10 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
       rugbyexplorer_field_club_teams:
         rugbyexplorer_params?.settings?.rugbyexplorer_field_club_teams ?? []
     });
+
+    if (rugbyexplorer_params?.entity_types.length > 0) {
+      setEntityTypeOptions(rugbyexplorer_params?.entity_types);
+    }
   }, []);
   return (
     <>
@@ -121,9 +128,16 @@ const AddTeam = ({ setClubTeams, entityOptions }) => {
             label="Entity ID"
             name="entity_id"
             tooltip={() => "Ex: jruc, jjruc, scm-jnr-rugby-union, etc."}
-            rules={[{ required: true, message: "Please input entity ID!" }]}
+            rules={[{ required: true, message: "Please select entity ID!" }]}
           >
             <Select options={entityOptions} />
+          </Form.Item>
+          <Form.Item
+            label="Entity Type"
+            name="entity_type"
+            rules={[{ required: true, message: "Please select entity type!" }]}
+          >
+            <Select defaultValue="club" options={entityTypeOptions} />
           </Form.Item>
           <Form.Item
             label="Competition ID"

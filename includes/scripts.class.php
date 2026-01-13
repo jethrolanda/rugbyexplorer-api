@@ -65,7 +65,11 @@ class Scripts
         'rest_url'   => esc_url_raw(get_rest_url()),
         'nonce' => wp_create_nonce('wp_rest'),
         'ajax_url' => admin_url('admin-ajax.php'),
-        'settings' => $settings ? $settings : array()
+        'settings' => $settings ? $settings : array(),
+        'entity_types' => array(
+          array('label' => 'Club', 'value' => 'club'),
+          array('label' => 'Association', 'value' => 'association')
+        )
       ));
       wp_register_style('rugbyexplorer-css', REA_JS_ROOT_URL . 'rugbyexplorer/build/style-index.css');
 
