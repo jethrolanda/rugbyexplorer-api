@@ -81,7 +81,7 @@ class RugbyExplorer
           'competition' => $competition_id,
           'team' => $team_id,
           'entityId' => (int) $entity_id,
-          'entity_type' => $entity_type,
+          'entityType' => $entity_type,
           'type' =>  'fixtures'
         );
 

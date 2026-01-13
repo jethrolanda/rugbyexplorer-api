@@ -11,7 +11,6 @@ export default function TeamTable({ data, setClubTeams }) {
   };
 
   const deleteItem = async (record) => {
-    console.log(record);
     const formData = new FormData();
     formData.append("action", "delete_team");
     formData.append("data", JSON.stringify(record));
