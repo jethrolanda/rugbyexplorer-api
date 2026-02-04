@@ -1242,6 +1242,15 @@ class Sportspress
 
         $data[$player_id]['a'] =  $games_played;
       }
+
+      // ASC
+      // uasort($data, function ($itemA, $itemB) {
+      //   return ($itemA['a'] ?? 0) <=> ($itemB['a'] ?? 0);
+      // });
+      // DESC
+      uasort($data, function ($itemA, $itemB) {
+        return ($itemB['a'] ?? 0) <=> ($itemA['a'] ?? 0);
+      });
     }
     return $data;
   }

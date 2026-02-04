@@ -124,6 +124,8 @@ class Cron
           update_option('ladder_data_' . $competition_id, $competition_data);
         }
       }
+
+      $rea->helpers->cache_total_games_played_all_players();
     } catch (\Exception $e) {
       error_log('Update Club Events Error: ' . $e->getMessage());
     }
