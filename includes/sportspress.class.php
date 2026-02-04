@@ -29,7 +29,7 @@ class Sportspress
   {
     add_filter('the_title', array($this, 'remove_player_squad_number_single_player_page'), 20, 2);
 
-    add_filter("sportspress_player_list_data", array($this, 'update_player_games_played'), 10, 2);
+    add_filter("sportspress_player_list_data", array($this, 'update_player_appearance'), 10, 2);
   }
 
   /**
@@ -1222,7 +1222,7 @@ class Sportspress
   }
 
   /**
-   * Replace A = Total events where the user scored into total games played (scored or not as long as in the starting or substitutes)
+   * Replace A = Total events where the user scored into total appearances (scored or not)
    * 
    * @param array $data
    * @param int|null $id
@@ -1232,11 +1232,16 @@ class Sportspress
   public function update_player_games_played($data, $id)
   {
     global $rea;
+
     if ($data) {
       foreach ($data as $player_id => $stats) {
-        // $games_played = count($rea->shortcode->get_player_games_played($player_id));
-        $games_played = get_post_meta($player_id, 'games_played', true);
-        $data[$player_id]['a'] =  !empty($games_played) ?  (int) $games_played : 0;
+        // skip labels
+        if ($player_id == 0) continue;
+
+        // Get from cache else get total first then cache
+        $games_played = $rea->helpers->cache_total_games_played_per_player($player_id);
+
+        $data[$player_id]['a'] =  $games_played;
       }
     }
     return $data;

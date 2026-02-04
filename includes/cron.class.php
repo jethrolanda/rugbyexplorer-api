@@ -24,6 +24,9 @@ class Cron
     // Action Scheduler hook
     add_action('rugbyexplorer_scheduled_events_update', array($this, 'rugbyexplorer_scheduled_events_update'));
     add_action('rugbyexplorer_update_club_events', array($this, 'rugbyexplorer_update_club_events'));
+
+    // Cache total games played per players
+    add_action('rugbyexplorer_cache_games_played_per_player', array($this, 'cache_games_played_per_player'));
   }
 
   /**
@@ -121,6 +124,23 @@ class Cron
           update_option('ladder_data_' . $competition_id, $competition_data);
         }
       }
+    } catch (\Exception $e) {
+      error_log('Update Club Events Error: ' . $e->getMessage());
+    }
+  }
+
+  /**
+   * Action Scheduler hook that perform re-cache on all games played per player
+   *  
+   * @since 1.0
+   */
+  public function cache_games_played_per_player()
+  {
+
+    try {
+      global $rea;
+
+      $rea->helpers->cache_total_games_played_all_players();
     } catch (\Exception $e) {
       error_log('Update Club Events Error: ' . $e->getMessage());
     }
