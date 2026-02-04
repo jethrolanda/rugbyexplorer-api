@@ -120,7 +120,7 @@ class Ajax
           'numberposts'    => $batch_size,
           'fields'         => 'ids',
         ]);
-        error_log(print_r($posts, true));
+
         if (empty($posts)) break;
 
         foreach ($posts as $post_id) {

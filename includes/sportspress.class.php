@@ -28,6 +28,8 @@ class Sportspress
   public function __construct()
   {
     add_filter('the_title', array($this, 'remove_player_squad_number_single_player_page'), 20, 2);
+
+    add_filter("sportspress_player_list_data", array($this, 'update_player_appearance'), 10, 2);
   }
 
   /**
@@ -1217,5 +1219,25 @@ class Sportspress
       }
     }
     return $title;
+  }
+
+  /**
+   * Replace A = Total events where the user scored into total appearances (scored or not)
+   * 
+   * @param array $data
+   * @param int|null $id
+   * @return string
+   * @since 1.0
+   */
+  public function update_player_appearance($data, $id)
+  {
+    global $rea;
+    if ($data) {
+      foreach ($data as $player_id => $stats) {
+        $games_played = count($rea->shortcode->get_player_games_played($player_id));
+        $data[$player_id]['a'] = (int) $games_played;
+      }
+    }
+    return $data;
   }
 }
