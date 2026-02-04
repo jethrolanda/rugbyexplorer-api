@@ -92,6 +92,10 @@ class RugbyExplorer_API
 			if (!as_next_scheduled_action('rugbyexplorer_scheduled_events_update')) {
 				as_schedule_recurring_action(time(), DAY_IN_SECONDS, 'rugbyexplorer_scheduled_events_update');
 			}
+
+			if (!as_next_scheduled_action('rugbyexplorer_cache_games_played_per_player')) {
+				as_schedule_recurring_action(time(), DAY_IN_SECONDS, 'rugbyexplorer_cache_games_played_per_player');
+			}
 		}
 	}
 
