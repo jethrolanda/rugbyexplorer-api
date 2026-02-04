@@ -29,7 +29,7 @@ class Sportspress
   {
     add_filter('the_title', array($this, 'remove_player_squad_number_single_player_page'), 20, 2);
 
-    add_filter("sportspress_player_list_data", array($this, 'update_player_appearance'), 10, 2);
+    add_filter("sportspress_player_list_data", array($this, 'update_player_games_played'), 10, 2);
   }
 
   /**
@@ -1222,14 +1222,14 @@ class Sportspress
   }
 
   /**
-   * Replace A = Total events where the user scored into total appearances (scored or not)
+   * Replace A = Total events where the user scored into total games played (scored or not as long as in the starting or substitutes)
    * 
    * @param array $data
    * @param int|null $id
    * @return string
    * @since 1.0
    */
-  public function update_player_appearance($data, $id)
+  public function update_player_games_played($data, $id)
   {
     global $rea;
     if ($data) {

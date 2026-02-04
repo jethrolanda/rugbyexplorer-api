@@ -269,7 +269,7 @@ class Ajax
 
       global $rea;
 
-      $rea->helpers->cache_total_games_played();
+      $rea->helpers->cache_total_games_played_all_players();
 
       wp_send_json(array(
         'status' => 'success',

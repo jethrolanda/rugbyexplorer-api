@@ -252,13 +252,15 @@ class Shortcode
    */
   public function player_games_played($atts)
   {
+
+    global $rea;
     $atts = shortcode_atts(array(
       'player_id' => get_the_ID(),
     ), $atts, 'player_games_played');
 
     // Custom games played count
     $player_id = esc_attr($atts['player_id']);
-    $games_played = count($this->get_player_games_played($player_id));
+    $games_played = $rea->helpers->cache_total_games_played_per_player($player_id);
 
     // From sportspress player data
     $player = new \SP_Player($player_id);

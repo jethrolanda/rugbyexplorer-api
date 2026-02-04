@@ -34,7 +34,12 @@ class Helpers
     return self::$_instance;
   }
 
-  public function cache_total_games_played()
+  /**
+   * Get all players and then individually get games played then cache
+   *  
+   * @since 1.0
+   */
+  public function cache_total_games_played_all_players()
   {
     global $rea;
 
@@ -51,5 +56,26 @@ class Helpers
         update_post_meta($player_id, 'games_played', $games_played);
       }
     }
+  }
+
+  /**
+   * Cache games played per player
+   * 
+   * @param int $player_id 
+   * @return int
+   * @since 1.0
+   */
+  public function cache_total_games_played_per_player($player_id)
+  {
+    global $rea;
+
+    $games_played = get_post_meta($player_id, 'games_played', true);
+
+    if (empty($games_played)) {
+      $games_played = count($rea->shortcode->get_player_games_played($player_id));
+      update_post_meta($player_id, 'games_played', $games_played);
+    }
+
+    return !empty($games_played) ? $games_played : 0;
   }
 }
