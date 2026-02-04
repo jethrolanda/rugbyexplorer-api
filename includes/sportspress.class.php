@@ -1234,8 +1234,9 @@ class Sportspress
     global $rea;
     if ($data) {
       foreach ($data as $player_id => $stats) {
-        $games_played = count($rea->shortcode->get_player_games_played($player_id));
-        $data[$player_id]['a'] = (int) $games_played;
+        // $games_played = count($rea->shortcode->get_player_games_played($player_id));
+        $games_played = get_post_meta($player_id, 'games_played', true);
+        $data[$player_id]['a'] =  !empty($games_played) ?  (int) $games_played : 0;
       }
     }
     return $data;

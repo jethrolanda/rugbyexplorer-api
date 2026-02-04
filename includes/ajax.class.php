@@ -41,6 +41,9 @@ class Ajax
 
     // Delete Team via ajax 
     add_action("wp_ajax_delete_team", array($this, 'delete_team'));
+
+    // Cache total games played per player via ajax 
+    add_action("wp_ajax_cache_total_games_played", array($this, 'cache_total_games_played_cb'));
   }
 
   /**
@@ -236,6 +239,40 @@ class Ajax
       wp_send_json(array(
         'status' => 'success',
         'data' => $options,
+      ));
+    } catch (\Exception $e) {
+
+      wp_send_json(array(
+        'status' => 'error',
+        'message' => $e->getMessage()
+      ));
+    }
+  }
+
+  /**
+   * Cache total games played per player ajax handler
+   * 
+   * @since 1.0
+   */
+  public function cache_total_games_played_cb()
+  {
+
+    if (!defined('DOING_AJAX') || !DOING_AJAX) {
+      wp_die();
+    }
+
+    if (!is_user_logged_in()) {
+      wp_die();
+    }
+
+    try {
+
+      global $rea;
+
+      $rea->helpers->cache_total_games_played();
+
+      wp_send_json(array(
+        'status' => 'success',
       ));
     } catch (\Exception $e) {
 

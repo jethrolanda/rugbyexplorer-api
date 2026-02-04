@@ -3,6 +3,7 @@ import { Button, Space, Popconfirm, notification, Card, Spin } from "antd";
 
 const ImportActions = () => {
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [eventStatus, setEventStatus] = useState([]);
   const [processedTeam, setProcessedTeam] = useState(0);
@@ -145,6 +146,26 @@ const ImportActions = () => {
     }
   };
 
+  const cacheGamePlayeds = async () => {
+    try {
+      setLoading2(true);
+      const formData = new FormData();
+      formData.append("action", "cache_total_games_played");
+
+      const res = await fetch(rugbyexplorer_params.ajax_url, {
+        method: "POST",
+        headers: { "X-WP-Nonce": rugbyexplorer_params.nonce },
+        body: formData
+      });
+
+      const data = await res.json();
+      console.log(data);
+      setLoading2(false);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
   const deleteEvents = () => {
     async function deleting() {
       try {
@@ -194,6 +215,15 @@ const ImportActions = () => {
             <p>
               Import data from RugbyExplorer API to SportsPress. Import Fixtures
               and Results.
+            </p>
+          </div>
+          <div>
+            <Button onClick={cacheGamePlayeds} loading={loading2}>
+              Cache Games Played Per Player
+            </Button>
+            <p>
+              Loop all players and cache total games played for the whole
+              career.
             </p>
           </div>
           <div>
