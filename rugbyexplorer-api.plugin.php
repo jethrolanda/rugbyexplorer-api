@@ -42,21 +42,6 @@ class RugbyExplorer_API
 	public function __construct()
 	{
 
-		// $options = get_option('rugbyexplorer_options');
-
-		// $count = 1;
-		// $updated_teams = array();
-		// $unique = str_replace('.', '', microtime(true));
-		// foreach ($options['rugbyexplorer_field_club_teams'] as $key => $team) {
-
-		// 	$updated_teams[$key] = $team;
-		// 	$updated_teams[$key]['key'] = $unique + $count;
-		// 	$count++;
-		// }
-		// $options['rugbyexplorer_field_club_teams'] = $updated_teams;
-
-		// update_option('rugbyexplorer_options', $options);
-
 		$this->scripts = REA\Plugin\Scripts::instance();
 		$this->ajax = REA\Plugin\Ajax::instance();
 		$this->shortcode = REA\Plugin\Shortcode::instance();
