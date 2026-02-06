@@ -279,53 +279,7 @@ class Shortcode
     return ob_get_clean();
   }
 
-  /**
-   * Helper function that perform a query to get all events the player
-   * The data is stored in event postmeta during events import.
-   * 
-   * @param int $player_id
-   * @param int|null $year
-   * @return array
-   * @since 1.0
-   */
-  public function get_player_games_played($player_id, $year = null)
-  {
-    global $wpdb;
 
-    $player_id = intval($player_id);
-    $player_code = get_post_meta($player_id, 'player_id', true);
-
-    $where_year = '';
-    $params = [
-      'sp_event',
-      'rugby_explorer_match_details_data',
-      '%' . $player_code . '%'
-    ];
-
-    // Add optional year condition
-    if (!empty($year) && is_numeric($year)) {
-      $where_year = " AND YEAR(p.post_date) = %d";
-      $params[] = (int) $year;
-    }
-
-    $sql = "
-    SELECT p.ID
-    FROM {$wpdb->posts} p
-    INNER JOIN {$wpdb->postmeta} pm
-        ON p.ID = pm.post_id
-    WHERE p.post_type = %s
-      AND p.post_status != 'trash'
-      AND pm.meta_key = %s
-      AND pm.meta_value LIKE %s
-      $where_year
-";
-
-    $sp_player_ids = $wpdb->get_col(
-      $wpdb->prepare($sql, $params)
-    );
-
-    return $sp_player_ids;
-  }
 
   /**
    * Get player match history data. 
@@ -337,6 +291,9 @@ class Shortcode
    */
   public function player_matches_history($atts)
   {
+
+    global $rea;
+
     $atts = shortcode_atts(array(
       'player_id' => get_the_ID(),
       'season' => null,
@@ -344,7 +301,7 @@ class Shortcode
 
     $player_id = esc_attr($atts['player_id']);
     $season = esc_attr($atts['season']);
-    $games_played = $this->get_player_games_played($player_id, $season);
+    $games_played = $rea->helpers->get_player_games_played($player_id, $season);
     ob_start();
 
     if ($player_id) {
@@ -367,6 +324,8 @@ class Shortcode
    */
   public function player_stats($atts)
   {
+
+    global $rea;
     $currentYear = (int)date('Y');
     $startYear = 2019;
     $atts = shortcode_atts(array(
@@ -384,8 +343,8 @@ class Shortcode
     ob_start();
 
     foreach ($seasons as $season) {
-      $events = $this->get_player_games_played($player_id, $season);
-      $filtered_events = $this->get_player_event_filter_by_player_id($player_id, $events);
+      $events = $rea->helpers->get_player_games_played($player_id, $season);
+      $filtered_events = $rea->helpers->get_player_event_filter_by_player_id($player_id, $events);
       $data = array();
 
       foreach ($filtered_events as $event_id) {
@@ -395,7 +354,7 @@ class Shortcode
           'player_id' => $player_id,
           'league_id' => !empty($terms) ? $terms[0]->term_id : 0,
           'league_name' => !empty($terms) ? $terms[0]->name : '',
-          'scores' => $this->get_player_scores($event_id, $player_id)
+          'scores' => $rea->helpers->get_player_scores($event_id, $player_id)
         );
       }
 
@@ -435,81 +394,5 @@ class Shortcode
     }
 
     return ob_get_clean();
-  }
-
-  /**
-   * Helper function: Find from the events played where the player scored points
-   * 
-   * @param int $player_id
-   * @param array $events
-   * @return array
-   * @since 1.0
-   */
-  public function get_player_event_filter_by_player_id($player_id, $events)
-  {
-    global $wpdb;
-
-    $player_id = intval($player_id);
-    $event_ids = array_map('intval', (array)$events); // sanitize 
-    // If event_ids empty → avoid invalid SQL
-    if (empty($event_ids)) {
-      return []; // or return early
-    }
-    $placeholders = implode(',', array_fill(0, count($event_ids), '%d'));
-
-    $params = array(
-      'sp_event',
-      'sp_players',
-      '%' . $player_id . '%'
-    );
-    $params = array_merge($params, $event_ids);
-
-    $sql = "
-    SELECT p.ID
-    FROM {$wpdb->posts} p
-    INNER JOIN {$wpdb->postmeta} pm
-        ON p.ID = pm.post_id
-    WHERE p.post_type = %s
-      AND p.post_status != 'trash'
-      AND pm.meta_key = %s
-      AND pm.meta_value LIKE %s
-       AND p.ID IN ($placeholders)
-";
-
-    $sp_player_ids = $wpdb->get_col(
-      $wpdb->prepare($sql, $params)
-    );
-
-    return $sp_player_ids;
-  }
-
-  /**
-   * Helper function: Tally player scores
-   * 
-   * @param int $event_id
-   * @param int $player_id
-   * @return array
-   * @since 1.0
-   */
-  public function get_player_scores($event_id, $player_id)
-  {
-    $scores = get_post_meta($event_id, 'sp_players', true);
-    $data = array(
-      'try' => 0, // t
-      'conversions' => 0, // c
-      'penalty_kicks' => 0, // p
-      'drop_goals' => 0, // dg
-    );
-
-    foreach ($scores as $score) {
-      if (isset($score[$player_id])) {
-        $data['try'] += isset($score[$player_id]['t']) ? intval($score[$player_id]['t']) : 0;
-        $data['conversions'] += isset($score[$player_id]['c']) ? intval($score[$player_id]['c']) : 0;
-        $data['penalty_kicks'] += isset($score[$player_id]['p']) ? intval($score[$player_id]['p']) : 0;
-        $data['drop_goals'] += isset($score[$player_id]['dg']) ? intval($score[$player_id]['dg']) : 0;
-      }
-    }
-
-    return $data;
   }
 }

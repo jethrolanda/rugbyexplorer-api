@@ -197,10 +197,10 @@ class Sportspress
         $is_home = $fixture_item['homeTeam']['teamId'] == $team ? true : false;
 
         // Create Players
-        $this->createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team);
+        $this->createPlayers($post_id, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team);
 
         // Create staff
-        $this->createStaff($team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team);
+        $this->createStaff($post_id, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team);
 
         // Create official
         $this->createOfficial($post_id, $referees);
@@ -320,6 +320,7 @@ class Sportspress
   /**
    * Create players. Check if player ID does not exist then create else only update.
    * 
+   * @param array $event_id
    * @param array $team_ids
    * @param int $sportspressSeasonId
    * @param int $sportspressLeagueId
@@ -328,10 +329,13 @@ class Sportspress
    * @param string $team
    * @since 1.0
    */
-  public function createPlayers($team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team)
+  public function createPlayers($event_id, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $players, $is_home, $team)
   {
 
     if (!empty($players)) {
+
+      update_post_meta($event_id, 'rugby_explorer_players', $players);
+
       foreach ($players as $player) {
 
         $team_id = $player['isHome'] ? $team_ids[0] : $team_ids[1];
@@ -443,6 +447,7 @@ class Sportspress
   /**
    * Create staffs. Check if staff ID does not exist then create else only update.
    * 
+   * @param int $event_id
    * @param int $matchId
    * @param array $team_ids
    * @param int $sportspressSeasonId
@@ -452,11 +457,14 @@ class Sportspress
    * @param string $team
    * @since 1.0
    */
-  public function createStaff($team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team)
+  public function createStaff($event_id, $team_ids, $sportspressSeasonId, $sportspressLeagueId, $coaches, $is_home, $team)
   {
     $job_id = $this->getTermId('Coach', 'sp_role');
 
     if (!empty($coaches)) {
+
+      update_post_meta($event_id, 'rugby_explorer_staffs', $coaches);
+
       foreach ($coaches as $coach) {
         // Skip adding if staff already exist
         $staff_id = $this->getPostIdByMetaValue('sp_staff', 'coach_id', $coach['id']);
@@ -538,6 +546,9 @@ class Sportspress
     $officials = array();
 
     if (!empty($referees)) {
+
+      update_post_meta($event_id, 'rugby_explorer_staffs', $referees);
+
       foreach ($referees as $referee) {
 
         // Create Duty / Get Duty ID
@@ -1243,14 +1254,22 @@ class Sportspress
         $data[$player_id]['a'] =  $games_played;
       }
 
-      // ASC
-      // uasort($data, function ($itemA, $itemB) {
-      //   return ($itemA['a'] ?? 0) <=> ($itemB['a'] ?? 0);
-      // });
-      // DESC
-      uasort($data, function ($itemA, $itemB) {
-        return ($itemB['a'] ?? 0) <=> ($itemA['a'] ?? 0);
-      });
+      $order = get_post_meta($id, 'sp_order', true);
+      if (empty($order)) {
+        $order = 'ASC';
+      }
+
+      if ($order == 'DESC') {
+        // DESC
+        uasort($data, function ($itemA, $itemB) {
+          return ($itemB['a'] ?? 0) <=> ($itemA['a'] ?? 0);
+        });
+      } else {
+        // ASC
+        uasort($data, function ($itemA, $itemB) {
+          return ($itemA['a'] ?? 0) <=> ($itemB['a'] ?? 0);
+        });
+      }
     }
     return $data;
   }

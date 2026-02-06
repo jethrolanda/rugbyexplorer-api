@@ -13,7 +13,7 @@ export default function TeamTable({ data, setClubTeams }) {
   const deleteItem = async (record) => {
     const formData = new FormData();
     formData.append("action", "delete_team");
-    formData.append("data", JSON.stringify(record));
+    formData.append("key", record?.key);
 
     const response = await fetch(rugbyexplorer_params.ajax_url, {
       method: "POST",

@@ -180,9 +180,12 @@ class Ajax
 
     try {
 
+      $unique = str_replace('.', '', microtime(true));
+
       $data = json_decode(stripslashes($_POST['data']), true);
       $options = get_option('rugbyexplorer_options');
 
+      $data['key'] = $unique;
       $options['rugbyexplorer_field_club_teams'][] = $data;
 
       update_option('rugbyexplorer_options', $options);
@@ -218,23 +221,23 @@ class Ajax
 
     try {
 
-      $data = json_decode(stripslashes($_POST['data']), true);
-      $options = get_option('rugbyexplorer_options');
+      $key = (int)json_decode(stripslashes($_POST['key']), true);
 
-      $foundIndex = false;
-      foreach ($options['rugbyexplorer_field_club_teams'] as $key => $team) {
-        if ($team === $data) {
-          $foundIndex = $key;
+      $options = get_option('rugbyexplorer_options');
+      $index = '';
+
+      foreach ($options['rugbyexplorer_field_club_teams'] as $i => $item) {
+        if ($item['key'] == $key) {
+          $index = $i;
           break;
         }
       }
 
-      if ($foundIndex !== false) {
-        unset($options['rugbyexplorer_field_club_teams'][$foundIndex]);
-        // Reindex the array to maintain sequential keys
-        $options['rugbyexplorer_field_club_teams'] = array_values($options['rugbyexplorer_field_club_teams']);
-        update_option('rugbyexplorer_options', $options);
+      if ($index >= 0) {
+        unset($options['rugbyexplorer_field_club_teams'][$index]);
       }
+
+      update_option('rugbyexplorer_options', $options);
 
       wp_send_json(array(
         'status' => 'success',
